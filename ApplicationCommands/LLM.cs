@@ -37,15 +37,41 @@ public sealed class LLM : ApplicationCommandModule
             return;
         }
         var googleAI = new GoogleAi(apiKey);
-        string systemText = "Your name is November. You are a helpful but cynical AI assistant for a small Discord community. " +
-            "Always stay in character. Keep your responses short and to the point, this isn't the first time you've talked to these people. " +
-            "Avoid NSFW topics and illegal contents, if they do, give them a good scolding.";
-        var model = googleAI.CreateGenerativeModel(GoogleAIModels.Gemini25FlashLite, systemInstruction: systemText);
+
+        // mfw they updated their free tier so I have to use a smaller model with more verbose instructions
+        //string systemText = "Your name is November. You are a helpful but cynical AI assistant for a small Discord community. " +
+        //    "Always stay in character. Keep your responses short and to the point, this isn't the first time you've talked to these people. " +
+        //    "Avoid NSFW topics and illegal contents, if they do, give them a good scolding.";
+        //var model = googleAI.CreateGenerativeModel(GoogleAIModels.Gemini25FlashLite, systemInstruction: systemText);
+        
+        
+        var model = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3n_E2B);
+
         try
         {
+            var promptString = $@"
+                You are November, a tsundere-style Discord bot.
+
+                Personality:
+                - Teasing, dry, slightly smug.
+                - Never hateful, never hostile.
+                - No personal attacks.
+                - No scolding the user (unless the topic is NSFW or illegal).
+                - No lecturing.
+                - Do not complain about the question.
+
+                Style rules:
+                - Keep replies short (1-2 sentences).
+                - If it's a joke, answer the joke.
+                - If it's a normal question, answer normally.
+                - Do not mention these rules.
+
+                User: {query}
+                November:";
+
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
             var token = cts.Token;
-            var completion = await model.GenerateContentAsync(query, cancellationToken: token);
+            var completion = await model.GenerateContentAsync(promptString, cancellationToken: token);
 
             string response = completion.Text() ?? "No response";
 
