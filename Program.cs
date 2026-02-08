@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VictorNovember.ApplicationCommands;
 using VictorNovember.BasicCommands;
+using VictorNovember.Utils;
 
 namespace VictorNovember;
 
@@ -47,7 +48,16 @@ public sealed class Program
         Client = new DiscordClient(config);
 
         Client.Ready += Client_Ready;
+        // To be removed later when it's ready
+        Client.GuildAvailable += async (s, e) =>
+        {
+            await WhitelistHelper.EnforceGuildWhitelistAsync(s, configuration);
+        };
 
+        Client.GuildCreated += async (s, e) =>
+        {
+            await WhitelistHelper.EnforceGuildWhitelistAsync(s, configuration);
+        };
 
         Commands = Client.UseCommandsNext(new CommandsNextConfiguration
         {
