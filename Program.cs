@@ -1,56 +1,77 @@
-﻿using DiscordBotTemplateNet8.Commands;
-using DiscordBotTemplateNet8.Config;
-using DSharpPlus;
+﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.EventArgs;
+using DSharpPlus.SlashCommands;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using VictorNovember.ApplicationCommands;
+using VictorNovember.BasicCommands;
 
-namespace DiscordBotTemplateNet8
+namespace VictorNovember;
+
+public sealed class Program
 {
-    public sealed class Program
+    public static DiscordClient? Client { get; set; }
+    public static CommandsNextExtension? Commands { get; set; }
+    public static SlashCommandsExtension? Slash { get; set; }
+    static async Task Main(string[] args)
     {
-        public static DiscordClient Client { get; set; }
-        public static CommandsNextExtension Commands { get; set; }
-        static async Task Main(string[] args)
+        var configuration = new ConfigurationBuilder()
+        .SetBasePath($"{AppContext.BaseDirectory}/Config")
+        .AddJsonFile("config.json", optional: false, reloadOnChange: true)
+        .AddUserSecrets<Program>(optional: true)
+        .AddEnvironmentVariables()
+        .Build();
+
+        var token = configuration["Discord:Token"];
+        var prefix = configuration["Discord:Prefix"] ?? "!";
+
+        if (string.IsNullOrWhiteSpace(token))
+            throw new InvalidOperationException("Discord bot token missing. Set Discord:Token in config.json.");
+
+        var services = new ServiceCollection()
+        .AddSingleton<IConfiguration>(configuration)
+        .BuildServiceProvider();
+
+        var config = new DiscordConfiguration()
         {
-            var botConfig = new BotConfig();
-            await botConfig.ReadJSON();
+            Intents = DiscordIntents.Guilds
+                    | DiscordIntents.GuildMembers
+                    | DiscordIntents.GuildMessages
+                    | DiscordIntents.MessageContents,
+            Token = token,
+            TokenType = TokenType.Bot,
+            AutoReconnect = true
+        };
 
-            var config = new DiscordConfiguration()
-            {
-                Intents = DiscordIntents.All,
-                Token = botConfig.DiscordBotToken,
-                TokenType = TokenType.Bot,
-                AutoReconnect = true
-            };
+        Client = new DiscordClient(config);
 
-            Client = new DiscordClient(config);
+        Client.Ready += Client_Ready;
 
-            Client.Ready += Client_Ready;
 
-            var commandsConfig = new CommandsNextConfiguration
-            {
-                StringPrefixes = new string[] { botConfig.DiscordBotPrefix },
-                EnableMentionPrefix = true,
-                EnableDms = true,
-                EnableDefaultHelp = false
-            };
-
-            Commands = Client.UseCommandsNext(commandsConfig);
-
-            Commands.RegisterCommands<Basic>();
-
-            Console.WriteLine("============================== \n" +
-                              "NET 8.0 C# Discord Bot \n" +
-                              "Made from samjesus8/CSharp-Discord-Bot-Template-NET8 \n" +
-                              "==============================");
-
-            await Client.ConnectAsync();
-            await Task.Delay(-1);
-        }
-
-        private static Task Client_Ready(DiscordClient sender, ReadyEventArgs args)
+        Commands = Client.UseCommandsNext(new CommandsNextConfiguration
         {
-            return Task.CompletedTask;
-        }
+            StringPrefixes = new string[] { prefix },
+            EnableMentionPrefix = true,
+            EnableDms = true,
+            EnableDefaultHelp = false,
+            Services = services
+        });
+        Commands.RegisterCommands<Basic>();
+
+        Slash = Client.UseSlashCommands(new SlashCommandsConfiguration
+        {
+            Services = services
+        });
+        Slash.RegisterCommands<General>();
+        Slash.RegisterCommands<Fun>();
+        Slash.RegisterCommands<LLM>();
+
+        Console.WriteLine("Establishing connection to discord, standby...");
+
+        await Client.ConnectAsync();
+        await Task.Delay(Timeout.Infinite);
     }
+
+    private static Task Client_Ready(DiscordClient sender, ReadyEventArgs args) => Task.CompletedTask;
 }

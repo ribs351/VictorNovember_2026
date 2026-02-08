@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordBotTemplateNet8", "DiscordBotTemplateNet8.csproj", "{1A453DAE-7D21-4E45-B186-CDA1E8C23A02}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VictorNovember", "VictorNovember.csproj", "{1A453DAE-7D21-4E45-B186-CDA1E8C23A02}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
