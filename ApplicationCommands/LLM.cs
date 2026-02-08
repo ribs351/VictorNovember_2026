@@ -37,18 +37,15 @@ public sealed class LLM : ApplicationCommandModule
             return;
         }
         var googleAI = new GoogleAi(apiKey);
-        var model = googleAI.CreateGenerativeModel(GoogleAIModels.Gemini25FlashLite);
+        string systemText = "Your name is November. You are a helpful but cynical AI assistant for a small Discord community. " +
+            "Always stay in character. Keep your responses short and to the point, this isn't the first time you've talked to these people. " +
+            "Avoid NSFW topics and illegal contents, if they do, give them a good scolding.";
+        var model = googleAI.CreateGenerativeModel(GoogleAIModels.Gemini25FlashLite, systemInstruction: systemText);
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
             var token = cts.Token;
-
-            var promptString = $@"
-            System: Your name is November. You are a helpful but cynical AI assistant for a small Discord community. 
-            Always stay in character. Keep your responses short and to the point, this isn't the first time you've talked to these people. Avoid NSFW topics and illegal contents, if they do, give them a good scolding.
-
-            User: {query}:";
-            var completion = await model.GenerateContentAsync(promptString, cancellationToken: token);
+            var completion = await model.GenerateContentAsync(query, cancellationToken: token);
 
             string response = completion.Text() ?? "No response";
 
@@ -68,6 +65,12 @@ public sealed class LLM : ApplicationCommandModule
         {
             await ctx.EditResponseAsync(new DiscordWebhookBuilder()
                 .WithContent("Gemini took too long and timed out. Try again."));
+        }
+
+        catch (HttpRequestException ex) when (ex.Message.Contains("429"))
+        {
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+                .WithContent("Slow down! I can only judge you people so fast. (Rate limit reached)."));
         }
 
         catch (Exception ex)
