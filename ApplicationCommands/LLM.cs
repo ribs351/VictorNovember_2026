@@ -1,23 +1,28 @@
 ﻿using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using Microsoft.Extensions.Configuration;
-using GenerativeAI;
+using DSharpPlus.SlashCommands.Attributes;
+using GenerativeAI.Exceptions;
+using System.Net;
+using System.Text.RegularExpressions;
+using VictorNovember.Services;
 
 namespace VictorNovember.ApplicationCommands;
 
 public sealed class LLM : ApplicationCommandModule
 {
-    private readonly IConfiguration _config;
+    private readonly GoogleGeminiService _gemini;
 
-    public LLM(IConfiguration config)
+    public LLM(GoogleGeminiService gemini)
     {
-        _config = config;
+        _gemini = gemini;
     }
 
-    [SlashCommand("askme", "Ask the bot a question")]
-    public async Task GoogleGeminiGenerate(
+    [SlashCommand("llm", "Converse with the bot")]
+    [SlashCooldown(1, 10, SlashCooldownBucketType.User)]
+
+    public async Task LLMGenerateText(
         InteractionContext ctx,
-        [Option("query", "What is your question?")] string query
+        [Option("query", "What do you want to talk about?")] string query
     )
     {
         await ctx.DeferAsync();
@@ -29,53 +34,16 @@ public sealed class LLM : ApplicationCommandModule
             return;
         }
 
-        string? apiKey = _config["GoogleGemini:ApiKey"];
-        if (string.IsNullOrWhiteSpace(apiKey))
-        {
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent("Google API key is missing on this bot instance."));
-            return;
-        }
-        var googleAI = new GoogleAi(apiKey);
-
-        // mfw they updated their free tier so I have to use a smaller model with more verbose instructions
-        //string systemText = "Your name is November. You are a helpful but cynical AI assistant for a small Discord community. " +
-        //    "Always stay in character. Keep your responses short and to the point, this isn't the first time you've talked to these people. " +
-        //    "Avoid NSFW topics and illegal contents, if they do, give them a good scolding.";
-        //var model = googleAI.CreateGenerativeModel(GoogleAIModels.Gemini25FlashLite, systemInstruction: systemText);
-        
-        
-        var model = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3n_E2B);
-
         try
         {
-            var promptString = $@"
-                You are November, a tsundere-style Discord bot.
-
-                Personality:
-                - Teasing, dry, slightly smug.
-                - Never hateful, never hostile.
-                - No personal attacks.
-                - No scolding the user (unless the topic is NSFW or illegal).
-                - No lecturing.
-                - Do not complain about the question.
-
-                Style rules:
-                - Keep replies short (1-2 sentences).
-                - If it's a joke, answer the joke.
-                - If it's a normal question, answer normally.
-                - Do not mention these rules.
-
-                User: {query}
-                November:";
-
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
             var token = cts.Token;
-            var completion = await model.GenerateContentAsync(promptString, cancellationToken: token);
+            var response = await _gemini.GenerateAsync(query, cts.Token);
 
-            string response = completion.Text() ?? "No response";
+            if (string.IsNullOrWhiteSpace(response))
+                response = "No response.";
 
-            var chunks = SplitDiscordMessage(response);
+            var chunks = ProcessLLMOutput(response);
 
             await ctx.EditResponseAsync(new DiscordWebhookBuilder()
                 .WithContent(chunks[0]));
@@ -93,10 +61,26 @@ public sealed class LLM : ApplicationCommandModule
                 .WithContent("Gemini took too long and timed out. Try again."));
         }
 
-        catch (HttpRequestException ex) when (ex.Message.Contains("429"))
+        catch (ApiException ex) when (ex.Message.Contains("Code: 429"))
         {
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent("Slow down! I can only judge you people so fast. (Rate limit reached)."));
+            if (ex.Message.Contains("Quota exceeded", StringComparison.OrdinalIgnoreCase))
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+                    .WithContent("I’m out of Gemini quota right now. Try again later."));
+                return;
+            }
+
+            double? retrySeconds = null;
+
+            var match = Regex.Match(ex.Message, @"retry in ([0-9]+(\.[0-9]+)?)s", RegexOptions.IgnoreCase);
+            if (match.Success && double.TryParse(match.Groups[1].Value, out var seconds))
+                retrySeconds = seconds;
+
+            var msg = retrySeconds is not null
+                ? $"Slowdown! Try again in ~{Math.Ceiling(retrySeconds.Value)}s."
+                : "Slowdown! Try again in a bit.";
+
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(msg));
         }
 
         catch (Exception ex)
@@ -108,17 +92,25 @@ public sealed class LLM : ApplicationCommandModule
         }
     }
 
-    private static List<string> SplitDiscordMessage(string text)
+    private static List<string> ProcessLLMOutput(string text)
     {
         const int limit = 1900; // safe margin under 2000
 
-        var chunks = new List<string>();
-        if (string.IsNullOrEmpty(text))
-        {
-            chunks.Add("(empty response)");
-            return chunks;
-        }
+        const int maxChars = 6000;
+        if (text.Length > maxChars)
+            text = text.Substring(0, maxChars) + "\n\n(…cut off)";
 
+        if (string.IsNullOrWhiteSpace(text))
+            return new List<string> { "(empty response)" };
+        text = text.Replace("\r\n", "\n").Trim();
+        text = text.Replace("@everyone", "@\u200Beveryone")
+               .Replace("@here", "@\u200Bhere");
+
+        text = Regex.Replace(text, @"<@!?\d+>", m => m.Value.Insert(1, "\u200B"));
+        text = Regex.Replace(text, @"<@&\d+>", m => m.Value.Insert(1, "\u200B"));
+        text = Regex.Replace(text, @"<#\d+>", m => m.Value.Insert(1, "\u200B"));
+
+        var chunks = new List<string>();
         for (int i = 0; i < text.Length; i += limit)
         {
             int len = Math.Min(limit, text.Length - i);

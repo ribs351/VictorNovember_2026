@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VictorNovember.ApplicationCommands;
 using VictorNovember.BasicCommands;
+using VictorNovember.Services;
 using VictorNovember.Utils;
 
 namespace VictorNovember;
@@ -32,6 +33,8 @@ public sealed class Program
 
         var services = new ServiceCollection()
         .AddSingleton<IConfiguration>(configuration)
+        .AddSingleton<GoogleGeminiService>()
+        .AddMemoryCache()
         .BuildServiceProvider();
 
         var config = new DiscordConfiguration()

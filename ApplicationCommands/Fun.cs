@@ -21,13 +21,6 @@ public sealed class Fun : ApplicationCommandModule
     )
     {
         await ctx.DeferAsync();
-        if (ctx.Guild is null || ctx.Member is null)
-        {
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent("This command can only be used in a server, where the stakes are present."));
-            return;
-        }
-
         int bullets = (int)bulletsInput;
         bullets = Math.Clamp(bullets, 1, 6);
 
@@ -97,7 +90,7 @@ public sealed class Fun : ApplicationCommandModule
         }
 
         await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-            .WithContent($"The chamber was loaded! **{ctx.User.Username}** shot themself in the head!"));
+            .WithContent($"The chamber was loaded! **{ctx.User.Mention}** shot themself in the head!"));
     }
 
 }

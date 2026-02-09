@@ -34,7 +34,6 @@ public sealed class General : ApplicationCommandModule
         var uptime = DateTime.Now - process.StartTime;
 
         var managedMemMb = GC.GetTotalMemory(false) / 1024.0 / 1024.0;
-        var privateMemMb = process.PrivateMemorySize64 / 1024.0 / 1024.0;
 
         var totalUsers = ctx.Client.Guilds.Sum(g => g.Value.MemberCount);
 
