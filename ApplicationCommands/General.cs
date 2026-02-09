@@ -3,6 +3,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using System.Diagnostics;
+using VictorNovember.Utils;
 
 namespace VictorNovember.ApplicationCommands;
 
@@ -46,21 +47,10 @@ public sealed class General : ApplicationCommandModule
             .AddField("Ping", $"```fix\n{ctx.Client.Ping}ms```", true)
             .AddField("Total Servers", $"```fix\n{ctx.Client.Guilds.Count}```", true)
             .AddField("Total Users", $"```fix\n{totalUsers}```", true)
-            .AddField("Up Time", $"```fix\n{FormatUptime(uptime)}```", true)
+            .AddField("Up Time", $"```fix\n{StringUtils.FormatUptime(uptime)}```", true)
             .AddField("Memory Usage", $"```fix\n{managedMemMb:0.0} MB```", true);
 
         await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embed));
-    }
-
-    private static string FormatUptime(TimeSpan t)
-    {
-        if (t.TotalDays >= 1)
-            return $"{(int)t.TotalDays}d {t.Hours}h {t.Minutes}m {t.Seconds}s";
-        if (t.TotalHours >= 1)
-            return $"{t.Hours}h {t.Minutes}m {t.Seconds}s";
-        if (t.TotalMinutes >= 1)
-            return $"{t.Minutes}m {t.Seconds}s";
-        return $"{t.Seconds}s";
     }
 
     [SlashCommand("info", "Get some information on a user")]

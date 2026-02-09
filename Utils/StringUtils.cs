@@ -9,6 +9,16 @@ namespace VictorNovember.Utils;
 
 public sealed class StringUtils
 {
+    public static string FormatUptime(TimeSpan t)
+    {
+        if (t.TotalDays >= 1)
+            return $"{(int)t.TotalDays}d {t.Hours}h {t.Minutes}m {t.Seconds}s";
+        if (t.TotalHours >= 1)
+            return $"{t.Hours}h {t.Minutes}m {t.Seconds}s";
+        if (t.TotalMinutes >= 1)
+            return $"{t.Minutes}m {t.Seconds}s";
+        return $"{t.Seconds}s";
+    }
     public static List<string> ProcessLLMOutput(string text)
     {
         const int limit = 1900; // safe margin under 2000

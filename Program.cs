@@ -79,6 +79,7 @@ public sealed class Program
         Slash.RegisterCommands<General>();
         Slash.RegisterCommands<Fun>();
         Slash.RegisterCommands<LLM>();
+        Slash.RegisterCommands<Moderation>();
 
         Console.WriteLine("Establishing connection to discord, standby...");
 
