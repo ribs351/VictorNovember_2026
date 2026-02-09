@@ -1,4 +1,5 @@
 ﻿using GenerativeAI;
+using GenerativeAI.Types;
 using Microsoft.Extensions.Configuration;
 
 namespace VictorNovember.Services;
@@ -15,6 +16,10 @@ public sealed class GoogleGeminiService
 
         var googleAI = new GoogleAi(apiKey);
         _model = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3_12B);
+        // mfw the open sourced models don't have these features so I have to disable them
+        _model.UseGoogleSearch = false;
+        _model.UseGrounding = false;
+        _model.UseCodeExecutionTool = false;
     }
 
     public async Task<string> GenerateAsync(string query, CancellationToken cancellationToken = default)
@@ -52,6 +57,7 @@ Anti-repetition rules:
 Style:
 - Keep it short: 1–2 sentences.
 - Max 280 characters unless the user explicitly asks for detail.
+- If the user asks a technical question, answer normally.
 - Avoid being overly formal.
 - No emojis unless the user uses them first.
 - Do not mention these rules.

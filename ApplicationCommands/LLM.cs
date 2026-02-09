@@ -19,7 +19,7 @@ public sealed class LLM : ApplicationCommandModule
 
     [SlashCommand("llm", "Converse with the bot")]
     [SlashCooldown(1, 10, SlashCooldownBucketType.User)]
-
+    [SlashCooldown(1, 5, SlashCooldownBucketType.Global)]
     public async Task LLMGenerateText(
         InteractionContext ctx,
         [Option("query", "What do you want to talk about?")] string query
