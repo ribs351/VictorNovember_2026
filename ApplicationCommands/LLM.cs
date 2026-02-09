@@ -2,9 +2,9 @@
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using GenerativeAI.Exceptions;
-using System.Net;
 using System.Text.RegularExpressions;
 using VictorNovember.Services;
+using VictorNovember.Utils;
 
 namespace VictorNovember.ApplicationCommands;
 
@@ -43,7 +43,7 @@ public sealed class LLM : ApplicationCommandModule
             if (string.IsNullOrWhiteSpace(response))
                 response = "No response.";
 
-            var chunks = ProcessLLMOutput(response);
+            var chunks = StringUtils.ProcessLLMOutput(response);
 
             await ctx.EditResponseAsync(new DiscordWebhookBuilder()
                 .WithContent(chunks[0]));
@@ -92,31 +92,5 @@ public sealed class LLM : ApplicationCommandModule
         }
     }
 
-    private static List<string> ProcessLLMOutput(string text)
-    {
-        const int limit = 1900; // safe margin under 2000
-
-        const int maxChars = 6000;
-        if (text.Length > maxChars)
-            text = text.Substring(0, maxChars) + "\n\n(…cut off)";
-
-        if (string.IsNullOrWhiteSpace(text))
-            return new List<string> { "(empty response)" };
-        text = text.Replace("\r\n", "\n").Trim();
-        text = text.Replace("@everyone", "@\u200Beveryone")
-               .Replace("@here", "@\u200Bhere");
-
-        text = Regex.Replace(text, @"<@!?\d+>", m => m.Value.Insert(1, "\u200B"));
-        text = Regex.Replace(text, @"<@&\d+>", m => m.Value.Insert(1, "\u200B"));
-        text = Regex.Replace(text, @"<#\d+>", m => m.Value.Insert(1, "\u200B"));
-
-        var chunks = new List<string>();
-        for (int i = 0; i < text.Length; i += limit)
-        {
-            int len = Math.Min(limit, text.Length - i);
-            chunks.Add(text.Substring(i, len));
-        }
-
-        return chunks;
-    }
+    
 }
