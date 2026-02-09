@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace VictorNovember.Utils;
 
-public class WhitelistHelper
+public static class WhitelistHelper
 {
     public static async Task EnforceGuildWhitelistAsync(DiscordClient client, IConfiguration config)
     {

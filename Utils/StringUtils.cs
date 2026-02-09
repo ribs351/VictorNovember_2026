@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
 
 namespace VictorNovember.Utils;
 
-public sealed class StringUtils
+public static class StringUtils
 {
     public static string FormatUptime(TimeSpan t)
     {

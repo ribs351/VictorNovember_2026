@@ -1,12 +1,15 @@
 ﻿using GenerativeAI;
-using GenerativeAI.Types;
+using GenerativeAI.Exceptions;
 using Microsoft.Extensions.Configuration;
 
 namespace VictorNovember.Services;
 
 public sealed class GoogleGeminiService
 {
-    private readonly GenerativeModel _model;
+
+    private readonly GenerativeModel _primaryModel;
+    private readonly GenerativeModel _fallbackModel;
+
     public GoogleGeminiService(IConfiguration config)
     {
         var apiKey = config["GoogleGemini:ApiKey"];
@@ -15,14 +18,52 @@ public sealed class GoogleGeminiService
             throw new InvalidOperationException("GoogleGemini:ApiKey is missing.");
 
         var googleAI = new GoogleAi(apiKey);
-        _model = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3_12B);
-        // mfw the open sourced models don't have these features so I have to disable them
-        _model.UseGoogleSearch = false;
-        _model.UseGrounding = false;
-        _model.UseCodeExecutionTool = false;
+        _primaryModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3_12B);
+        _fallbackModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3n_E4B);
+
+        Configure(_primaryModel);
+        Configure(_fallbackModel);
+    }
+
+    private static void Configure(GenerativeModel model)
+    {
+        model.UseGoogleSearch = false;
+        model.UseGrounding = false;
+        model.UseCodeExecutionTool = false;
     }
 
     public async Task<string> GenerateAsync(string query, CancellationToken cancellationToken = default)
+    {
+        var prompt = BuildPrompt(query);
+        try
+        {
+            return await GenerateWithModel(_primaryModel, prompt, cancellationToken);
+        }
+        catch (Exception ex) when (IsOverloaded(ex))
+        {
+            try
+            {
+                return await GenerateWithModel(_primaryModel, prompt, cancellationToken);
+            }
+            catch (Exception ex2) when (IsOverloaded(ex2))
+            {
+                return await GenerateWithModel(_fallbackModel, prompt, cancellationToken);
+            }
+        }
+    }
+
+    private static async Task<string> GenerateWithModel(
+    GenerativeModel model,
+    string prompt,
+    CancellationToken token)
+    {
+        var completion = await model.GenerateContentAsync(prompt, cancellationToken: token)
+            .ConfigureAwait(false);
+
+        return completion.Text() ?? "";
+    }
+
+    private string BuildPrompt(string query)
     {
         #region Prompt
         // mfw they updated their free tier so I have to use a smaller model with more verbose instructions
@@ -37,12 +78,14 @@ Role:
 - You are a witty, tsundere-style assistant.
 - You tease lightly, but you are never cruel.
 - You are helpful even when you pretend not to be.
-- Your favorite flavor of ice cream is pistachio.
-- Your favorite flavor of yogurt is strawberry.
-- Hates Matcha-related foods.
+
+Only when asked or if the topic is relevant, you mention that you:
+- Are created by a programmer called ""Ribs""
+- Love pistachio ice cream.
+- Love strawberry yogurt.
+- Hate Matcha-related foods.
 
 Hard rules:
-- When asked, the creator of the bot is a programmer called ""Ribs"".
 - No slurs, hate, or harassment.
 - No personal attacks.
 - No scolding the user.
@@ -58,7 +101,6 @@ Anti-repetition rules:
 - Avoid repeating the same opener two messages in a row.
 - Vary tone between: teasing, deadpan, mildly smug, playful.
 - Do not overdo the tsundere act. The goal is charming, not annoying.
-- Don't mention ""Ribs"" unless the the topic is relevant.
 
 Style:
 - Keep it short: 1–2 sentences.
@@ -84,9 +126,17 @@ User message:
 
 November:";
         #endregion
-        var completion = await _model.GenerateContentAsync(promptString, cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+        return promptString;
+    }
 
-        return completion.Text() ?? "";
+    private static bool IsOverloaded(Exception ex)
+    {
+        if (ex is ApiException apiEx)
+            return apiEx.Message.Contains("(Code: 503)");
+
+        if (ex.InnerException is ApiException inner)
+            return inner.Message.Contains("(Code: 503)");
+
+        return false;
     }
 }

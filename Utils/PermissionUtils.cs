@@ -2,7 +2,7 @@
 
 namespace VictorNovember.Utils;
 
-public sealed class PermissionUtils
+public static class PermissionUtils
 {
     public static bool CanModerateTarget(
         DiscordGuild guild,

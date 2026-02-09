@@ -2,7 +2,6 @@
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using GenerativeAI.Exceptions;
-using System.Text.RegularExpressions;
 using VictorNovember.Services;
 using VictorNovember.Utils;
 
@@ -37,60 +36,34 @@ public sealed class LLM : ApplicationCommandModule
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-            var token = cts.Token;
+
             var response = await _gemini.GenerateAsync(query, cts.Token);
 
             if (string.IsNullOrWhiteSpace(response))
-                response = "No response.";
+                response = PersonalityUtils.EmptyResponse();
 
             var chunks = StringUtils.ProcessLLMOutput(response);
 
             await ctx.EditResponseAsync(new DiscordWebhookBuilder()
                 .WithContent(chunks[0]));
 
-            // If more chunks, send follow-up messages
             for (int i = 1; i < chunks.Count; i++)
             {
                 await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
                     .WithContent(chunks[i]));
             }
         }
-        catch (OperationCanceledException)
-        {
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent("Gemini took too long and timed out. Try again."));
-        }
-
-        catch (ApiException ex) when (ex.Message.Contains("Code: 429"))
-        {
-            if (ex.Message.Contains("Quota exceeded", StringComparison.OrdinalIgnoreCase))
-            {
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                    .WithContent("I’m out of Gemini quota right now. Try again later."));
-                return;
-            }
-
-            double? retrySeconds = null;
-
-            var match = Regex.Match(ex.Message, @"retry in ([0-9]+(\.[0-9]+)?)s", RegexOptions.IgnoreCase);
-            if (match.Success && double.TryParse(match.Groups[1].Value, out var seconds))
-                retrySeconds = seconds;
-
-            var msg = retrySeconds is not null
-                ? $"Slowdown! Try again in ~{Math.Ceiling(retrySeconds.Value)}s."
-                : "Slowdown! Try again in a bit.";
-
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(msg));
-        }
-
+        
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            if (ex is not ApiException)
+                Console.WriteLine(ex);
+
+            var msg = PersonalityUtils.FromException(ex, includeCode: false);
 
             await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent("Something went wrong while contacting Google Gemini."));
+                .WithContent(msg));
         }
     }
 
-    
 }
