@@ -1,23 +1,11 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.SlashCommands;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace VictorNovember.Services;
 
 public static class ConfigurationProviderService
 {
-    public static IConfigurationRoot Build()
-    {
-        return new ConfigurationBuilder()
-            .SetBasePath(Path.Combine(AppContext.BaseDirectory, "Config"))
-            .AddJsonFile("config.json", optional: false, reloadOnChange: true)
-            .AddUserSecrets<Program>(optional: true)
-            .AddEnvironmentVariables()
-            .Build();
-    }
-
     public static DiscordConfiguration GetDiscordConfig(string token)
     {
         return new DiscordConfiguration()
@@ -31,7 +19,7 @@ public static class ConfigurationProviderService
             AutoReconnect = true
         };
     }
-    public static CommandsNextConfiguration GetCommandsNextConfig(string prefix, ServiceProvider services)
+    public static CommandsNextConfiguration GetCommandsNextConfig(string prefix, IServiceProvider services)
     {
         return new CommandsNextConfiguration
         {
@@ -43,7 +31,7 @@ public static class ConfigurationProviderService
         };
     }
 
-    public static SlashCommandsConfiguration GetSlashCommandsConfig(ServiceProvider services)
+    public static SlashCommandsConfiguration GetSlashCommandsConfig(IServiceProvider services)
     {
         return new SlashCommandsConfiguration
         {

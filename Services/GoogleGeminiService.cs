@@ -6,16 +6,15 @@ namespace VictorNovember.Services;
 
 public sealed class GoogleGeminiService
 {
-
     private readonly GenerativeModel _primaryModel;
     private readonly GenerativeModel _fallbackModel;
 
     public GoogleGeminiService(IConfiguration config)
     {
-        var apiKey = config["GoogleGemini:ApiKey"];
+        var apiKey = config["GoogleAPIKey"];
 
         if (string.IsNullOrWhiteSpace(apiKey))
-            throw new InvalidOperationException("GoogleGemini:ApiKey is missing.");
+            throw new InvalidOperationException("GoogleAPIKey is missing.");
 
         var googleAI = new GoogleAi(apiKey);
         _primaryModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3_12B);
