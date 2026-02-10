@@ -8,5 +8,8 @@
     783680375171055656,
     981432314879942726,
     944405082332610561
-  ]
+  ],
+  "ConnectionStrings": {
+    "NovemberDb": "Server=localhost;Database=November;Trusted_Connection=True;TrustServerCertificate=True"
+  }
 }

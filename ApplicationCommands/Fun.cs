@@ -21,6 +21,14 @@ public sealed class Fun : ApplicationCommandModule
     )
     {
         await ctx.DeferAsync();
+        
+        if (ctx.Channel.IsPrivate)
+        {
+            // if channel is a DM, then say no
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("This command can only be used in a server, where the stakes are present."));
+            return;
+        }
+
         int bullets = (int)bulletsInput;
         bullets = Math.Clamp(bullets, 1, 6);
 

@@ -3,10 +3,12 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VictorNovember.ApplicationCommands;
 using VictorNovember.BasicCommands;
+using VictorNovember.Data;
 using VictorNovember.Services;
 using VictorNovember.Utils;
 
@@ -19,13 +21,7 @@ public sealed class Program
     public static SlashCommandsExtension? Slash { get; set; }
     static async Task Main(string[] args)
     {
-        var configuration = new ConfigurationBuilder()
-        .SetBasePath($"{AppContext.BaseDirectory}/Config")
-        .AddJsonFile("config.json", optional: false, reloadOnChange: true)
-        .AddUserSecrets<Program>(optional: true)
-        .AddEnvironmentVariables()
-        .Build();
-
+        var configuration = ConfigurationProviderService.Build();
         var token = configuration["Discord:Token"];
         var prefix = configuration["Discord:Prefix"] ?? "!";
 
@@ -36,47 +32,45 @@ public sealed class Program
         .AddSingleton<IConfiguration>(configuration)
         .AddSingleton<GoogleGeminiService>()
         .AddMemoryCache()
+        .AddDbContext<NovemberContext>(options =>
+        {
+            options.UseSqlServer(
+                configuration.GetConnectionString("NovemberDb"));
+        })
+        .AddScoped<ServerBootstrapService>()
         .BuildServiceProvider();
 
-        var config = new DiscordConfiguration()
-        {
-            Intents = DiscordIntents.Guilds
-                    | DiscordIntents.GuildMembers
-                    | DiscordIntents.GuildMessages
-                    | DiscordIntents.MessageContents,
-            Token = token,
-            TokenType = TokenType.Bot,
-            AutoReconnect = true
-        };
+        var discordConfig = ConfigurationProviderService.GetDiscordConfig(token);
 
-        Client = new DiscordClient(config);
+        Client = new DiscordClient(discordConfig);
 
         Client.Ready += Client_Ready;
-        // To be removed later when it's ready
+        
         Client.GuildAvailable += async (s, e) =>
         {
-            await WhitelistHelper.EnforceGuildWhitelistAsync(s, configuration);
+            await WhitelistHelper.EnforceGuildWhitelistAsync(s, configuration); // To be removed later when it's ready
+            using var scope = services.CreateScope();
+            var bootstrap = scope.ServiceProvider
+                .GetRequiredService<ServerBootstrapService>();
+
+            await bootstrap.CreateServerEntry(e.Guild.Id);
         };
 
         Client.GuildCreated += async (s, e) =>
         {
-            await WhitelistHelper.EnforceGuildWhitelistAsync(s, configuration);
+            await WhitelistHelper.EnforceGuildWhitelistAsync(s, configuration); // To be removed later when it's ready
+
+            using var scope = services.CreateScope();
+            var bootstrap = scope.ServiceProvider
+                .GetRequiredService<ServerBootstrapService>();
+
+            await bootstrap.CreateServerEntry(e.Guild.Id);
         };
 
-        Commands = Client.UseCommandsNext(new CommandsNextConfiguration
-        {
-            StringPrefixes = new string[] { prefix },
-            EnableMentionPrefix = true,
-            EnableDms = true,
-            EnableDefaultHelp = false,
-            Services = services
-        });
+        Commands = Client.UseCommandsNext(ConfigurationProviderService.GetCommandsNextConfig(prefix, services));
         Commands.RegisterCommands<Basic>();
 
-        Slash = Client.UseSlashCommands(new SlashCommandsConfiguration
-        {
-            Services = services
-        });
+        Slash = Client.UseSlashCommands(ConfigurationProviderService.GetSlashCommandsConfig(services));
         Slash.RegisterCommands<General>();
         Slash.RegisterCommands<Fun>();
         Slash.RegisterCommands<LLM>();
