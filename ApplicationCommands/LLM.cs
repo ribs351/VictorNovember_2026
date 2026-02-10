@@ -2,6 +2,7 @@
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using GenerativeAI.Exceptions;
+using System.Diagnostics;
 using VictorNovember.Services;
 using VictorNovember.Utils;
 
@@ -21,7 +22,7 @@ public sealed class LLM : ApplicationCommandModule
     [SlashCooldown(1, 5, SlashCooldownBucketType.Global)]
     public async Task LLMGenerateText(
         InteractionContext ctx,
-        [Option("query", "What do you want to talk about?")] string query
+        [Option("query", "What do you want to talk about? (may take a moment to respond)")] string query
     )
     {
         await ctx.DeferAsync();
@@ -35,9 +36,37 @@ public sealed class LLM : ApplicationCommandModule
 
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            var sw = Stopwatch.StartNew();
 
-            var response = await _gemini.GenerateAsync(query, cts.Token);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            var generationTask = _gemini.GenerateAsync(query, cts.Token);
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(10), cts.Token);
+
+                    if (!generationTask.IsCompleted)
+                    {
+                        await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+                            .WithContent(PersonalityUtils.Thinking()));
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    // generation finished or request cancelled
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            });
+
+            var response = await generationTask;
+
+            sw.Stop();
+            Console.WriteLine($"LLM response time: {sw.ElapsedMilliseconds} ms");
 
             if (string.IsNullOrWhiteSpace(response))
                 response = PersonalityUtils.EmptyResponse();

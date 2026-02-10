@@ -179,4 +179,15 @@ public static class PersonalityUtils
         "It broke. Not my fault. (Okay maybe a little.) Try again.",
         "Unexpected error. Try again later.",
     };
+
+    public static string Thinking()
+    {
+        return Pick(new[]
+        {
+        "Give me a second. I’m thinking...",
+        "Hold on, this takes a bit...",
+        "I'm thinking. Don’t rush me...",
+        "Patience. I’ll get there eventually...",
+    }, null, false);
+    }
 }

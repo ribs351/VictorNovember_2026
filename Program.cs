@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
 using Microsoft.Extensions.Configuration;
@@ -83,7 +84,7 @@ public sealed class Program
 
         Console.WriteLine("Establishing connection to discord, standby...");
 
-        await Client.ConnectAsync();
+        await Client.ConnectAsync(new DiscordActivity("Pondering what to do next...", ActivityType.Playing), UserStatus.Idle);
         await Task.Delay(Timeout.Infinite);
     }
 
