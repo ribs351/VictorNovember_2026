@@ -10,7 +10,7 @@ namespace VictorNovember.ApplicationCommands;
 public sealed class General : ApplicationCommandModule
 {
     [SlashCommand("avatar", "Get a user's profile picture")]
-    public async Task Avatar(InteractionContext ctx,
+    public async Task AvatarAsync(InteractionContext ctx,
     [Option("user", "The user to fetch avatar from")] DiscordUser user)
     {
         await ctx.DeferAsync();
@@ -27,7 +27,7 @@ public sealed class General : ApplicationCommandModule
     }
 
     [SlashCommand("stats", "Get November's current status")]
-    public async Task Status(InteractionContext ctx)
+    public async Task StatusAsync(InteractionContext ctx)
     {
         await ctx.DeferAsync();
 
@@ -54,7 +54,7 @@ public sealed class General : ApplicationCommandModule
     }
 
     [SlashCommand("info", "Get some information on a user")]
-    public async Task Info(InteractionContext ctx,
+    public async Task InfoAsync(InteractionContext ctx,
     [Option("user", "The user to fetch info from")] DiscordUser user)
     {
         await ctx.DeferAsync();
@@ -94,7 +94,7 @@ public sealed class General : ApplicationCommandModule
 
     [SlashCommand("serverinfo", "Get the current server's info")]
     [SlashRequireGuild]
-    public async Task ServerInfo(InteractionContext ctx)
+    public async Task ServerInfoAsync(InteractionContext ctx)
     {
         await ctx.DeferAsync();
 
@@ -118,7 +118,8 @@ public sealed class General : ApplicationCommandModule
         if (roleList.Length > 1000)
             roleList = roleList.Substring(0, 1000) + "...";
 
-        var owner = ctx.Guild.GetMemberAsync(guild.OwnerId).Result?.DisplayName ?? $"{guild.OwnerId}";
+        var ownerMember = await guild.GetMemberAsync(guild.OwnerId);
+        var owner = ownerMember?.DisplayName ?? $"{guild.OwnerId}";
 
         var embed = new DiscordEmbedBuilder()
             .WithTitle("Server Info")

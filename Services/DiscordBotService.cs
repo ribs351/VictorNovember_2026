@@ -49,6 +49,7 @@ public sealed class DiscordBotService : IHostedService
 
         _client.GuildAvailable += OnGuildBootstrap;
         _client.GuildCreated += OnGuildBootstrap;
+        //_client.GuildMemberAdded += OnNewGuildMemberAdded;
 
         var commands = _client.UseCommandsNext(
             ConfigurationProviderService.GetCommandsNextConfig(prefix, _services));
@@ -70,6 +71,7 @@ public sealed class DiscordBotService : IHostedService
         if (_client is not null)
         {
             _logger.LogInformation("Disconnecting from Discord...");
+            //_client.GuildMemberAdded -= OnNewGuildMemberAdded;
             await _client.DisconnectAsync();
         }
     }
@@ -89,6 +91,38 @@ public sealed class DiscordBotService : IHostedService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error bootstrapping guild {GuildId}", e.Guild.Id);
+        }
+    }
+
+    private async Task OnNewGuildMemberAdded(DiscordClient s, DSharpPlus.EventArgs.GuildMemberAddEventArgs e)
+    {
+        try
+        {
+            using var scope = _services.CreateScope();
+            var welcomeService = scope.ServiceProvider.GetRequiredService<WelcomeImageService>();
+
+            // Generate image
+            using var imageStream = await welcomeService.CreateWelcomeImageAsync(e.Member);
+
+            var welcomeChannelId = await welcomeService.GetWelcomeChannelIdAsync(e.Guild.Id);
+            if (welcomeChannelId is null)
+                return;
+
+            if (!e.Guild.Channels.TryGetValue(welcomeChannelId.Value, out var channel))
+                return;
+
+            if (channel is DiscordChannel textChannel)
+            {
+                var messageBuilder = new DiscordMessageBuilder()
+                    .WithContent($"Welcome {e.Member.Mention}!")
+                    .AddFile("welcome.png", imageStream);
+
+                await textChannel.SendMessageAsync(messageBuilder);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send welcome image for {UserId}", e.Member.Id);
         }
     }
 }

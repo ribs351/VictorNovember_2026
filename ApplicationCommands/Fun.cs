@@ -2,14 +2,96 @@
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
+using System.Numerics;
+using VictorNovember.Extensions;
 
 namespace VictorNovember.ApplicationCommands;
 
 public sealed class Fun : ApplicationCommandModule
 {
+    public enum CoinSide { Heads, Tails }
+
+    [SlashCommand("coinflip", "Flips a coin")]
+    [SlashCooldown(1, 10, SlashCooldownBucketType.Channel)]
+    public async Task CoinFlipAsync(InteractionContext ctx)
+    {
+        await ctx.DeferAsync();
+
+        var result = (CoinSide)Random.Shared.Next(2);
+        var resultText = result.ToString().ToLower();
+
+        await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+            .WithContent($"{ctx.User.Mention} flipped a coin and got **{resultText}**!"));
+    }
+
+    #region RPS
+    public enum RpsChoice { Rock, Paper, Scissors }
+    public enum RpsOutcome { Draw, PlayerWin, NovemberWin }
+
+    public static class RpsEngine
+    {
+        public static RpsOutcome Decide(RpsChoice player, RpsChoice november)
+        {
+            if (player == november)
+                return RpsOutcome.Draw;
+
+            return (player, november) switch
+            {
+                (RpsChoice.Rock, RpsChoice.Scissors) => RpsOutcome.PlayerWin,
+                (RpsChoice.Scissors, RpsChoice.Paper) => RpsOutcome.PlayerWin,
+                (RpsChoice.Paper, RpsChoice.Rock) => RpsOutcome.PlayerWin,
+                _ => RpsOutcome.NovemberWin
+            };
+        }
+    }
+    [SlashCommand("rps", "Play a Rock, Paper, Scissors with November")]
+    [SlashCooldown(1, 10, SlashCooldownBucketType.Channel)]
+    public async Task RockPaperScissorsAsync(
+        InteractionContext ctx, 
+        [Choice("Rock", "rock")]
+        [Choice("Paper", "paper")]
+        [Choice("Scissors", "scissors")]
+        [Option("string", "Choose your weapon")] string choice)
+    {
+        var playerChoice = choice switch
+        {
+            "rock" => RpsChoice.Rock,
+            "paper" => RpsChoice.Paper,
+            "scissors" => RpsChoice.Scissors,
+            _ => throw new InvalidOperationException("Invalid RPS choice")
+        };
+
+        var novemberChoice = (RpsChoice)Random.Shared.Next(0, 3);
+
+        string[] novemberWonLines = new string[]{
+                            "I've won! Hah!",
+                            "You've done well to lose against me.",
+                            "Outplayed! Don't feel bad, I'm just that great yknow?"
+                        };
+        string[] novemberLostLines = new string[]{
+                            "Aww man, I lost!",
+                            "Dammit!",
+                            "One more go, I'll get it next time!"
+                        };
+
+        await ctx.DeferAsync();
+
+        var outcome = RpsEngine.Decide(playerChoice, novemberChoice);
+        var response = outcome switch
+        {
+            RpsOutcome.Draw => "It's a draw!",
+            RpsOutcome.PlayerWin => Random.Shared.PickRandom(novemberLostLines),
+            RpsOutcome.NovemberWin => Random.Shared.PickRandom(novemberWonLines),
+            _ => "Unhandled outcome",
+        };
+
+        await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+            .WithContent($"You threw **{playerChoice}**, I threw **{novemberChoice}**.\n\n {response}"));
+    }
+    #endregion
     [SlashCommand("rr", "Play a game of Russian Roulette")]
     [SlashCooldown(1, 10, SlashCooldownBucketType.Channel)]
-    public async Task RussianRoulette(
+    public async Task RussianRouletteAsync(
         InteractionContext ctx,
         [Choice("One", 1)]
         [Choice("Two", 2)]

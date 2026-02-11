@@ -42,6 +42,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.12" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageReference Include="System.Net.Security" Version="4.3.2" />
 	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.12" />
   </ItemGroup>

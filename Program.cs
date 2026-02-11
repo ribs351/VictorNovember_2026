@@ -25,6 +25,11 @@ public sealed class Program
                 services.AddTransient<GoogleGeminiService>();
                 services.AddScoped<ServerBootstrapService>();
                 services.AddHostedService<DiscordBotService>();
+                services.AddHttpClient("welcome-images", client =>
+                {
+                    client.Timeout = TimeSpan.FromSeconds(5);
+                });
+                services.AddTransient<WelcomeImageService>();
             })
             .Build();
 
