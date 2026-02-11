@@ -7,5 +7,9 @@
 - SQL Server (or suffer through migrations to switch to SQLite)
 - Google Gemini API key (good luck with the free tier)
 
+## Contributions
+This is a personal project and I’m not accepting pull requests at this time.
+Feel free to fork it and experiment on your own.
+
 ## License
 MIT (do whatever you want, I'm not your boss)
