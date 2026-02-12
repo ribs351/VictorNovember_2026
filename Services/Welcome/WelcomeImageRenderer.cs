@@ -121,9 +121,9 @@ public sealed class WelcomeImageRenderer
         var subheaderFont = fontFamily.CreateFont(28, FontStyle.Regular);
 
         var headerX = bannerWidth / 2f;
-        var headerY = bannerHeight / 2f + 95;
+        var headerY = bannerHeight / 2f + 100;
         var subheaderX = bannerWidth / 2f;
-        var subheaderY = bannerHeight / 2f + 140;
+        var subheaderY = bannerHeight / 2f + 145;
 
         banner.Mutate(ctx =>
         {

@@ -50,7 +50,7 @@ public sealed class DiscordBotService : IHostedService
 
         _client.GuildAvailable += OnGuildBootstrap;
         _client.GuildCreated += OnGuildBootstrap;
-        //_client.GuildMemberAdded += OnNewGuildMemberAdded;
+        _client.GuildMemberAdded += OnNewGuildMemberAdded;
 
         _client.InteractionCreated += (s, e) =>
         {
