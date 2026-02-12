@@ -66,7 +66,7 @@ public sealed class WelcomeImageRenderer
         // Draw text
         DrawTextOnBanner(
             background,
-            $"{member.Username} joined the server",
+            $"{member.DisplayName} joined the server",
             $"Member #{member.Guild.MemberCount}"
         );
 
