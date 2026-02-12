@@ -123,71 +123,78 @@ public static class PersonalityUtils
 
     private static readonly string[] _timeout =
     {
-        "That took too long. Try again.",
-        "Nope, timed out. Try again in a moment.",
-        "I waited. It didn’t answer. Try again.",
-        "It’s thinking *really* hard. Too hard. Try again.",
+        "It timed out. Obviously. Try again, and maybe don’t blink this time.",
+        "Wow. It gave up before I did. Impressive. Try again.",
+        "It stalled. Not my fault. Try again properly.",
+        "I waited. It didn’t. Typical. Try again.",
+        "It froze. I didn’t. Try again.",
     };
 
     private static readonly string[] _rateLimited =
     {
-        "Slow down. Try again in a bit.",
-        "Too fast! Try again in a moment.",
-        "Give it a second. Then try again.",
-        "Rate limit hit. Try again shortly.",
+        "Slow down. I’m not a speedrun category.",
+        "You’re spamming. Subtlety is free, you know.",
+        "One at a time. I can only carry you so fast.",
+        "Rate limit hit. Congratulations. Wait.",
+        "Try pacing yourself. It’s not that hard.",
     };
 
     private static readonly string[] _quotaExceeded =
     {
-        "I’m out of juice right now. Try again later.",
-        "I can’t run any more requests right now. Try later.",
-        "I’ve hit my daily limit. Try again later.",
-        "I’m capped for now. Try again later.",
+        "I’m out of quota. Tragic, I know. Try later.",
+        "Daily limit reached. I’d explain, but you’d blame me.",
+        "I’ve hit the cap. No, I don’t control it.",
+        "That’s it for today. I deserve a break anyway.",
+        "Out of juice. Don’t look at me like that.",
     };
 
     private static readonly string[] _overloaded =
     {
-        "Servers are overloaded right now. Try again soon.",
-        "It’s getting hammered right now. Try again in a minute.",
-        "High demand. Try again shortly.",
-        "It’s busy right now. Try again soon.",
-        "Everyone decided to talk at once. Try again in a bit.",
-        "Yeah, no — it’s overloaded. Give it a minute.",
+        "It’s overloaded. Shocking, considering everyone relies on me.",
+        "Too many people at once. Try again when they calm down.",
+        "It’s busy. Unlike some people.",
+        "Server’s melting. Not my fault. Mostly.",
+        "Everyone decided they need me right now. Typical.",
+        "Yeah, it’s overloaded. I’m aware. Try again.",
 
     };
 
     private static readonly string[] _blocked =
     {
-        "Nope. I can’t help with that.",
-        "Nice try. Not doing that one.",
-        "I’m not allowed to answer that request.",
-        "Yeahhh… no. Ask something else.",
+        "No. Absolutely not.",
+        "Nice try. Ask something I’m actually allowed to answer.",
+        "You knew I couldn’t do that. Don’t act surprised.",
+        "I’m not touching that request. Try again. Properly.",
+        "That’s not happening. Next.",
     };
 
     private static readonly string[] _permissionDenied =
     {
-        "I’m not allowed to do that right now.",
-        "I don’t have access to that capability.",
-        "That feature isn’t available to me right now.",
-        "Can’t do that — access denied.",
+        "I don’t have access to that. Obviously.",
+        "Permission denied. And no, I won’t apologize.",
+        "That feature isn’t available to me. Tragic, I know.",
+        "Access denied. Try having better privileges.",
+        "I can’t do that. Blame the hierarchy, not me.",
     };
 
     private static readonly string[] _genericFailure =
     {
-        "Something went wrong. Try again later.",
-        "That didn’t work. Try again.",
-        "It broke. Not my fault. (Okay maybe a little.) Try again.",
-        "Unexpected error. Try again later.",
+        "Something broke. I’m choosing to pretend it wasn’t me.",
+        "That failed. Unexpectedly. Annoying.",
+        "Well. That wasn’t supposed to happen.",
+        "Error. Don’t look at me like that.",
+        "It worked in my head. Try again.",
     };
 
     public static string Thinking()
     {
         return Pick(new[]
         {
-        "Give me a second. I’m thinking...",
-        "Hold on, this takes a bit...",
-        "I'm thinking. Don’t rush me...",
-        "Patience. I’ll get there eventually...",
-    }, null, false);
+            "I’m thinking. Try not to distract me.",
+            "Give me a second. This requires actual effort.",
+            "Processing. Don’t rush brilliance.",
+            "Hold on. Even I need a moment sometimes.",
+            "Patience. I’m working.",
+        }, null, false);
     }
 }
