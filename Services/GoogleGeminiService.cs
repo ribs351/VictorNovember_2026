@@ -1,6 +1,7 @@
 ﻿using GenerativeAI;
 using GenerativeAI.Exceptions;
 using Microsoft.Extensions.Configuration;
+using System.Diagnostics;
 
 namespace VictorNovember.Services;
 
@@ -33,23 +34,34 @@ public sealed class GoogleGeminiService
 
     public async Task<string> GenerateAsync(string query, CancellationToken cancellationToken = default)
     {
+        var sw = Stopwatch.StartNew();
         var prompt = BuildPrompt(query);
+        string response;
+        int attempts = 0;
+        string modelUsed = "primary";
         try
         {
-            return await GenerateWithModel(_primaryModel, prompt, cancellationToken);
+            attempts++;
+            response = await GenerateWithModel(_primaryModel, prompt, cancellationToken);
         }
         catch (Exception ex) when (IsOverloaded(ex))
         {
+            attempts++;
             try
             {
                 await Task.Delay(500);
-                return await GenerateWithModel(_primaryModel, prompt, cancellationToken);
+                response = await GenerateWithModel(_primaryModel, prompt, cancellationToken);
             }
             catch (Exception ex2) when (IsOverloaded(ex2))
             {
-                return await GenerateWithModel(_fallbackModel, prompt, cancellationToken);
+                attempts++;
+                modelUsed = "fallback";
+                response = await GenerateWithModel(_fallbackModel, prompt, cancellationToken);
             }
         }
+        sw.Stop();
+        Console.WriteLine($"LLM: {sw.ElapsedMilliseconds}ms | Model: {modelUsed} | Attempts: {attempts}");
+        return response;
     }
 
     private static async Task<string> GenerateWithModel(

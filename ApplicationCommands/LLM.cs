@@ -36,8 +36,6 @@ public sealed class LLM : ApplicationCommandModule
 
         try
         {
-            var sw = Stopwatch.StartNew();
-
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
             var generationTask = _gemini.GenerateAsync(query, cts.Token);
 
@@ -64,9 +62,6 @@ public sealed class LLM : ApplicationCommandModule
             });
 
             var response = await generationTask;
-
-            sw.Stop();
-            Console.WriteLine($"LLM response time: {sw.ElapsedMilliseconds} ms");
 
             if (string.IsNullOrWhiteSpace(response))
                 response = PersonalityUtils.EmptyResponse();
