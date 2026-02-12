@@ -1,12 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VictorNovember.Data;
+using VictorNovember.Data.Entities;
 
 namespace VictorNovember.Services;
 
-public sealed class ServerBootstrapService
+public sealed class ServerTrackingService
 {
     private readonly NovemberContext _db;
-    public ServerBootstrapService(NovemberContext db)
+    public ServerTrackingService(NovemberContext db)
     {
         _db = db;
     }

@@ -44,6 +44,27 @@ public sealed class Fun : ApplicationCommandModule
             };
         }
     }
+
+    private static readonly string[] NovemberWonLines =
+    {
+        "I've won! Hah!",
+        "You've done well to lose against me.",
+        "Outplayed! Don't feel bad, I'm just that great y'know?"
+    };
+
+    private static readonly string[] NovemberLostLines =
+    {
+        "Aww man, I lost!",
+        "Dammit!",
+        "One more go, I'll get it next time!"
+    };
+    private static readonly string[] DrawLines =
+    {
+        "Great minds think alike.",
+        "A stalemate!",
+        "We are evenly matched."
+    };
+
     [SlashCommand("rps", "Play a Rock, Paper, Scissors with November")]
     [SlashCooldown(1, 10, SlashCooldownBucketType.Channel)]
     public async Task RockPaperScissorsAsync(
@@ -63,30 +84,27 @@ public sealed class Fun : ApplicationCommandModule
 
         var novemberChoice = (RpsChoice)Random.Shared.Next(0, 3);
 
-        string[] novemberWonLines = new string[]{
-                            "I've won! Hah!",
-                            "You've done well to lose against me.",
-                            "Outplayed! Don't feel bad, I'm just that great yknow?"
-                        };
-        string[] novemberLostLines = new string[]{
-                            "Aww man, I lost!",
-                            "Dammit!",
-                            "One more go, I'll get it next time!"
-                        };
-
         await ctx.DeferAsync();
 
         var outcome = RpsEngine.Decide(playerChoice, novemberChoice);
         var response = outcome switch
         {
-            RpsOutcome.Draw => "It's a draw!",
-            RpsOutcome.PlayerWin => Random.Shared.PickRandom(novemberLostLines),
-            RpsOutcome.NovemberWin => Random.Shared.PickRandom(novemberWonLines),
+            RpsOutcome.Draw => Random.Shared.PickRandom(DrawLines),
+            RpsOutcome.PlayerWin => Random.Shared.PickRandom(NovemberWonLines),
+            RpsOutcome.NovemberWin => Random.Shared.PickRandom(NovemberLostLines),
             _ => "Unhandled outcome",
         };
 
+        var outcomeHeader = outcome switch
+        {
+            RpsOutcome.Draw => "It's a draw!",
+            RpsOutcome.PlayerWin => "You won!",
+            RpsOutcome.NovemberWin => "You lost!",
+            _ => "Match result unknown."
+        };
+
         await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-            .WithContent($"You threw **{playerChoice}**, I threw **{novemberChoice}**.\n\n {response}"));
+            .WithContent($"You threw **{playerChoice.ToDisplayString()}**, I threw **{novemberChoice.ToDisplayString()}**.\n\n**{outcomeHeader}**\n{response}"));
     }
     #endregion
     [SlashCommand("rr", "Play a game of Russian Roulette")]

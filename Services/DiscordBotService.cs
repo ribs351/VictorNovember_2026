@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using VictorNovember.ApplicationCommands;
 using VictorNovember.BasicCommands;
+using VictorNovember.Services.Welcome;
 using VictorNovember.Utils;
 
 namespace VictorNovember.Services;
@@ -51,6 +52,20 @@ public sealed class DiscordBotService : IHostedService
         _client.GuildCreated += OnGuildBootstrap;
         //_client.GuildMemberAdded += OnNewGuildMemberAdded;
 
+        _client.InteractionCreated += (s, e) =>
+        {
+            Console.WriteLine($"Name: {e.Interaction.Data?.Name}");
+
+            if (e.Interaction.Data?.Options is not null)
+            {
+                foreach (var opt in e.Interaction.Data.Options)
+                {
+                    Console.WriteLine($"Option: {opt.Name}");
+                }
+            }
+            return Task.CompletedTask;
+        };
+
         var commands = _client.UseCommandsNext(
             ConfigurationProviderService.GetCommandsNextConfig(prefix, _services));
         commands.RegisterCommands<Basic>();
@@ -61,9 +76,11 @@ public sealed class DiscordBotService : IHostedService
         slash.RegisterCommands<Fun>();
         slash.RegisterCommands<LLM>();
         slash.RegisterCommands<Moderation>();
+        slash.RegisterCommands<WelcomeImage>();
 
         _logger.LogInformation("Connecting to Discord...");
         await _client.ConnectAsync(new DiscordActivity("Pondering what to do next...", ActivityType.Playing), UserStatus.DoNotDisturb);
+        await slash.RefreshCommands();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -83,10 +100,10 @@ public sealed class DiscordBotService : IHostedService
             await WhitelistHelper.EnforceGuildWhitelistAsync(s, _config);
 
             using var scope = _services.CreateScope();
-            var bootstrap = scope.ServiceProvider
-                .GetRequiredService<ServerBootstrapService>();
+            var tracking = scope.ServiceProvider
+                .GetRequiredService<ServerTrackingService>();
 
-            await bootstrap.CreateServerEntry(e.Guild.Id);
+            await tracking.CreateServerEntry(e.Guild.Id);
         }
         catch (Exception ex)
         {
@@ -99,17 +116,18 @@ public sealed class DiscordBotService : IHostedService
         try
         {
             using var scope = _services.CreateScope();
-            var welcomeService = scope.ServiceProvider.GetRequiredService<WelcomeImageService>();
+            var welcomeService = scope.ServiceProvider.GetRequiredService<WelcomeConfigurationService>();
+            var imageRenderer = scope.ServiceProvider.GetRequiredService<WelcomeImageRenderer>();
+
+            var serverWelcomeConfig = await welcomeService.GetConfigAsync(e.Guild.Id);
+            if (serverWelcomeConfig is null || serverWelcomeConfig.ChannelId is null)
+                return;
+
+            if (!e.Guild.Channels.TryGetValue(serverWelcomeConfig.ChannelId.Value, out var channel))
+                return;
 
             // Generate image
-            using var imageStream = await welcomeService.CreateWelcomeImageAsync(e.Member);
-
-            var welcomeChannelId = await welcomeService.GetWelcomeChannelIdAsync(e.Guild.Id);
-            if (welcomeChannelId is null)
-                return;
-
-            if (!e.Guild.Channels.TryGetValue(welcomeChannelId.Value, out var channel))
-                return;
+            using var imageStream = await imageRenderer.CreateWelcomeImageAsync(e.Member, serverWelcomeConfig.BackgroundUrl);
 
             if (channel is DiscordChannel textChannel)
             {

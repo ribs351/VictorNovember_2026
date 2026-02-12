@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using VictorNovember.Services;
+using VictorNovember.Data.Entities;
 
 namespace VictorNovember.Data;
 

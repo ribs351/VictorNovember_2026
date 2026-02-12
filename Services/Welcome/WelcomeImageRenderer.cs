@@ -1,6 +1,4 @@
 ﻿using DSharpPlus.Entities;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging.Abstractions;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing;
@@ -8,34 +6,18 @@ using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using VictorNovember.Data;
 
-namespace VictorNovember.Services;
+namespace VictorNovember.Services.Welcome;
 
-public sealed class WelcomeImageService
+public sealed class WelcomeImageRenderer
 {
-    private readonly IMemoryCache _cache;
-    private readonly NovemberContext _db;
     private readonly IHttpClientFactory _httpClientFactory;
-    private const string DefaultBackgroundUrl = "https://images.unsplash.com/photo-1496715976403-7e36dc43f17b?w=1100&h=450&fit=crop";
-    public WelcomeImageService(IHttpClientFactory httpClientFactory, NovemberContext db, IMemoryCache cache)
+    private const string DefaultBackgroundUrl = "https://images.unsplash.com/photo-1461511669078-d46bf351cd6e?w=1100&h=450&fit=crop";
+    public WelcomeImageRenderer(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
-        _db = db;
-        _cache = cache;
     }
 
-    public async Task<ulong?> GetWelcomeChannelIdAsync(ulong guildId)
-    {
-        return await _cache.GetOrCreateAsync(
-            $"welcome:{guildId}",
-            async entry =>
-            {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
-                var server = await _db.Servers.FindAsync(guildId);
-                return server?.WelcomeChannelId;
-            });
-    }
     public async Task<Stream> CreateWelcomeImageAsync(
         DiscordMember member,
         string? backgroundUrl = null,
@@ -71,8 +53,8 @@ public sealed class WelcomeImageService
         using var circularAvatar = CreateCircularImage(avatar, avatarSize);
 
         // Composite avatar onto background (centered horizontally, offset vertically)
-        var avatarX = (bannerWidth / 2) - (avatarSize / 2);
-        var avatarY = (bannerHeight / 2) - 155;
+        var avatarX = bannerWidth / 2 - avatarSize / 2;
+        var avatarY = bannerHeight / 2 - 155;
 
         background.Mutate(ctx =>
         {
@@ -130,38 +112,44 @@ public sealed class WelcomeImageService
         // Load font
         FontFamily fontFamily;
 
-        if (!SystemFonts.TryGet("Arial", out fontFamily))
+        if (!SystemFonts.TryGet("Noto Sans", out fontFamily))
         {
             fontFamily = SystemFonts.Families.First();
         }
 
-        var headerFont = fontFamily.CreateFont(30, FontStyle.Bold);
-        var subheaderFont = fontFamily.CreateFont(23, FontStyle.Regular);
+        var headerFont = fontFamily.CreateFont(40, FontStyle.Bold);
+        var subheaderFont = fontFamily.CreateFont(28, FontStyle.Regular);
 
         var headerX = bannerWidth / 2f;
-        var headerY = (bannerHeight / 2f) + 115;
+        var headerY = bannerHeight / 2f + 115;
         var subheaderX = bannerWidth / 2f;
-        var subheaderY = (bannerHeight / 2f) + 160;
+        var subheaderY = bannerHeight / 2f + 160;
 
         banner.Mutate(ctx =>
         {
-            var textOptions = new RichTextOptions(headerFont)
+            var headerOptions = new RichTextOptions(headerFont)
             {
                 Origin = new PointF(headerX, headerY),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
 
-            var subTextOptions = new RichTextOptions(subheaderFont)
+            var subOptions = new RichTextOptions(subheaderFont)
             {
                 Origin = new PointF(subheaderX, subheaderY),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
 
-            // Draw text with stroke effect
-            ctx.DrawText(textOptions, header, Brushes.Solid(Color.White), Pens.Solid(Color.Black, 4));
-            ctx.DrawText(subTextOptions, subheader, Brushes.Solid(Color.Gray), Pens.Solid(Color.Black, 4));
+            var softStrokeHeader = Pens.Solid(Color.FromRgba(0, 0, 0, 180), 2f);
+            var softStrokeSub = Pens.Solid(Color.FromRgba(0, 0, 0, 150), 1f);
+
+            // Fill colors
+            var headerBrush = Brushes.Solid(Color.White);
+            var subBrush = Brushes.Solid(Color.FromRgb(210, 210, 210)); // softer grey
+
+            ctx.DrawText(headerOptions, header, headerBrush, softStrokeHeader);
+            ctx.DrawText(subOptions, subheader, subBrush, softStrokeSub);
         });
     }
 

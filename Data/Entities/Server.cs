@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace VictorNovember.Data;
+namespace VictorNovember.Data.Entities;
 
 public sealed class Server
 {

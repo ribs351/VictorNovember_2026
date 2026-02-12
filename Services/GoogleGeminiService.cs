@@ -42,6 +42,7 @@ public sealed class GoogleGeminiService
         {
             try
             {
+                await Task.Delay(500);
                 return await GenerateWithModel(_primaryModel, prompt, cancellationToken);
             }
             catch (Exception ex2) when (IsOverloaded(ex2))
