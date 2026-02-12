@@ -63,7 +63,7 @@ public sealed class DiscordBotService : IHostedService
         slash.RegisterCommands<LLMModule>();
         slash.RegisterCommands<ModerationModule>();
         slash.RegisterCommands<WelcomeImageModule>();
-        slash.RegisterCommands<NASAModule>(767618057447145492);
+        slash.RegisterCommands<NASAModule>();
 
         _logger.LogInformation("Connecting to Discord...");
         await _client.ConnectAsync(new DiscordActivity("Pondering what to do next...", ActivityType.Playing), UserStatus.DoNotDisturb);
