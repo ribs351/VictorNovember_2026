@@ -40,7 +40,7 @@ public sealed class NASAModule : ApplicationCommandModule
             {
                 var commentary = await _apodService.GenerateCommentaryAsync(apod.Title, apod.TrimmedExplanation, apod.Date);
 
-                embed.WithDescription(commentary);
+                embed.WithDescription($"November's commentary: {commentary}");
 
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embed));
             }
