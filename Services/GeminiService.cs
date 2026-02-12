@@ -12,6 +12,7 @@ public sealed class GeminiService : IGeminiService
 {
     private readonly GenerativeModel _primaryModel;
     private readonly GenerativeModel _fallbackModel;
+    private readonly GenerativeModel _lastresortModel;
     private readonly ILogger<GeminiService> _logger;
 
     public GeminiService(IConfiguration config, ILogger<GeminiService> logger)
@@ -23,11 +24,13 @@ public sealed class GeminiService : IGeminiService
             throw new InvalidOperationException("GoogleAPIKey is missing.");
 
         var googleAI = new GoogleAi(apiKey);
-        _primaryModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3_12B);
-        _fallbackModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3n_E4B);
+        _primaryModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemmma3_27B);
+        _fallbackModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3_12B);
+        _lastresortModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3n_E4B);
 
         Configure(_primaryModel);
         Configure(_fallbackModel);
+        Configure(_lastresortModel);
     }
 
     private static void Configure(GenerativeModel model)
@@ -41,32 +44,47 @@ public sealed class GeminiService : IGeminiService
     {
         var sw = Stopwatch.StartNew();
         var prompt = BuildPrompt(query, promptMode);
-        string response;
+
         int attempts = 0;
         string modelUsed = "primary";
+
         try
         {
             attempts++;
-            response = await GenerateWithModel(_primaryModel, prompt, cancellationToken);
+            var result = await TryGenerate(_primaryModel, prompt, cancellationToken);
+            if (result is not null) return result;
+
+            await Task.Delay(500, cancellationToken);
+            attempts++;
+            result = await TryGenerate(_primaryModel, prompt, cancellationToken);
+            if (result is not null) return result;
+
+            attempts++;
+            modelUsed = "fallback";
+            result = await TryGenerate(_fallbackModel, prompt, cancellationToken);
+            if (result is not null) return result;
+
+            attempts++;
+            modelUsed = "lastResort";
+            return await GenerateWithModel(_lastresortModel, prompt, cancellationToken);
+        }
+        finally
+        {
+            sw.Stop();
+            _logger.LogInformation("LLM: {Elapsed}ms | Model: {Model} | Attempts: {Attempts}", sw.ElapsedMilliseconds, modelUsed, attempts);
+        }
+    }
+
+    private async Task<string?> TryGenerate(GenerativeModel model, string prompt, CancellationToken ct)
+    {
+        try
+        {
+            return await GenerateWithModel(model, prompt, ct);
         }
         catch (Exception ex) when (IsOverloaded(ex))
         {
-            attempts++;
-            try
-            {
-                await Task.Delay(500);
-                response = await GenerateWithModel(_primaryModel, prompt, cancellationToken);
-            }
-            catch (Exception ex2) when (IsOverloaded(ex2))
-            {
-                attempts++;
-                modelUsed = "fallback";
-                response = await GenerateWithModel(_fallbackModel, prompt, cancellationToken);
-            }
+            return null;
         }
-        sw.Stop();
-        _logger.LogInformation($"LLM: {sw.ElapsedMilliseconds}ms | Model: {modelUsed} | Attempts: {attempts}");
-        return response;
     }
 
     private static async Task<string> GenerateWithModel(
@@ -133,6 +151,7 @@ Personal facts (STRICTLY CONDITIONAL):
 - You love strawberry yogurt.
 - You hate Matcha-related foods.
 - You love space-related things, but are too embarrassed to admit it.
+- Your favorite song is ""Se Piscar Já Era"" by Sorrizo Ronaldo.
 
 Rules for personal facts:
 - Do NOT mention any personal facts unless the user explicitly asks about them.

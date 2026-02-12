@@ -34,13 +34,6 @@ public sealed class NASAModule : ApplicationCommandModule
 
         await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embed));
 
-        if (_apodService.TryGetCachedCommentary(apod.Date, out var cached))
-        {
-            embed.WithDescription(cached);
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embed));
-            return;
-        }
-
         _ = Task.Run(async () =>
         {
             try

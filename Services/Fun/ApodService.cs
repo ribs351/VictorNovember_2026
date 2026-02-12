@@ -81,10 +81,6 @@ public sealed class ApodService : IApodService
         return explanation.Substring(0, maxLength) + "...";
     }
 
-    public bool TryGetCachedCommentary(string date, out string commentary)
-    {
-        return _cache.TryGetValue($"apod:commentary:{date}", out commentary);
-    }
 
     private static string BuildPrompt(string title, string explanation)
     {
