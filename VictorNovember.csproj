@@ -49,4 +49,8 @@
 	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.12" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DTOs\" />
+  </ItemGroup>
+
 </Project>

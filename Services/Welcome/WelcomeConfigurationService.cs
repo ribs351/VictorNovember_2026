@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using VictorNovember.Data;
-using VictorNovember.DTOs;
 using VictorNovember.Interfaces;
+using VictorNovember.Services.Welcome.Models;
 
 namespace VictorNovember.Services.Welcome;
 
@@ -18,7 +18,7 @@ public sealed class WelcomeConfigurationService : IWelcomeService
     private static string CacheKey(ulong guildId)
     => $"welcome:{guildId}";
 
-    public async Task<WelcomeConfigDTO?> GetConfigAsync(ulong guildId)
+    public async Task<WelcomeConfigurationResult?> GetConfigAsync(ulong guildId)
     {
         return await _cache.GetOrCreateAsync(
             $"welcome:{guildId}",
@@ -29,7 +29,7 @@ public sealed class WelcomeConfigurationService : IWelcomeService
                 await using var db = await _dbFactory.CreateDbContextAsync();
                 var server = await db.Servers.FindAsync(guildId);
 
-                return new WelcomeConfigDTO
+                return new WelcomeConfigurationResult
                 {
                     GuildId = guildId,
                     ChannelId = server?.WelcomeChannelId,

@@ -116,19 +116,4 @@ public class WelcomeImage : ApplicationCommandModule
         imageStream.Dispose();
     }
 
-    //private readonly IServiceScopeFactory _scopeFactory;
-    //public WelcomeImage(IServiceScopeFactory scopeFactory)
-    //{
-    //    _scopeFactory = scopeFactory;
-    //}
-
-    //[SlashCommand("test2", "Test the welcome message")]
-    //public async Task Test2(InteractionContext ctx)
-    //{
-    //    using var scope = _scopeFactory.CreateScope();
-    //    var configService = scope.ServiceProvider
-    //        .GetRequiredService<WelcomeConfigurationService>();
-
-    //    await ctx.CreateResponseAsync("Hit test command.");
-    //}
 }

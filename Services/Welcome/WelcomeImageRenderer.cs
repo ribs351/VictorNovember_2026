@@ -121,9 +121,9 @@ public sealed class WelcomeImageRenderer
         var subheaderFont = fontFamily.CreateFont(28, FontStyle.Regular);
 
         var headerX = bannerWidth / 2f;
-        var headerY = bannerHeight / 2f + 115;
+        var headerY = bannerHeight / 2f + 95;
         var subheaderX = bannerWidth / 2f;
-        var subheaderY = bannerHeight / 2f + 160;
+        var subheaderY = bannerHeight / 2f + 140;
 
         banner.Mutate(ctx =>
         {
@@ -142,14 +142,14 @@ public sealed class WelcomeImageRenderer
             };
 
             var softStrokeHeader = Pens.Solid(Color.FromRgba(0, 0, 0, 180), 2f);
-            var softStrokeSub = Pens.Solid(Color.FromRgba(0, 0, 0, 150), 1f);
+            //var softStrokeSub = Pens.Solid(Color.FromRgba(0, 0, 0, 150), 0.75f);
 
             // Fill colors
             var headerBrush = Brushes.Solid(Color.White);
             var subBrush = Brushes.Solid(Color.FromRgb(210, 210, 210)); // softer grey
 
             ctx.DrawText(headerOptions, header, headerBrush, softStrokeHeader);
-            ctx.DrawText(subOptions, subheader, subBrush, softStrokeSub);
+            ctx.DrawText(subOptions, subheader, subBrush, null);
         });
     }
 

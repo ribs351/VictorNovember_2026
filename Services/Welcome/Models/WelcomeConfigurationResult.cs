@@ -1,6 +1,6 @@
-﻿namespace VictorNovember.DTOs;
+﻿namespace VictorNovember.Services.Welcome.Models;
 
-public sealed class WelcomeConfigDTO
+public sealed class WelcomeConfigurationResult
 {
     public ulong GuildId { get; init; }
     public ulong? ChannelId { get; init; }
