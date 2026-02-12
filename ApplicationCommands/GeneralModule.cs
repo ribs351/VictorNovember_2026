@@ -7,7 +7,7 @@ using VictorNovember.Utils;
 
 namespace VictorNovember.ApplicationCommands;
 
-public sealed class General : ApplicationCommandModule
+public sealed class GeneralModule : ApplicationCommandModule
 {
     [SlashCommand("avatar", "Get a user's profile picture")]
     public async Task AvatarAsync(InteractionContext ctx,

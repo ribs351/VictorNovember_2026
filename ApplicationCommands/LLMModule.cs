@@ -2,19 +2,22 @@
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using GenerativeAI.Exceptions;
-using System.Diagnostics;
-using VictorNovember.Services;
+using Microsoft.Extensions.Logging;
+using VictorNovember.Interfaces;
 using VictorNovember.Utils;
+using static VictorNovember.Enums.GeminiServiceEnums;
 
 namespace VictorNovember.ApplicationCommands;
 
-public sealed class LLM : ApplicationCommandModule
+public sealed class LLMModule : ApplicationCommandModule
 {
-    private readonly GoogleGeminiService _gemini;
+    private readonly IGeminiService _gemini;
+    private readonly ILogger<LLMModule> _logger;
 
-    public LLM(GoogleGeminiService gemini)
+    public LLMModule(IGeminiService gemini, ILogger<LLMModule> logger)
     {
         _gemini = gemini;
+        _logger = logger;
     }
 
     [SlashCommand("llm", "Converse with the bot")]
@@ -37,7 +40,7 @@ public sealed class LLM : ApplicationCommandModule
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-            var generationTask = _gemini.GenerateAsync(query, cts.Token);
+            var generationTask = _gemini.GenerateAsync(query, PromptMode.General, cts.Token);
 
             _ = Task.Run(async () =>
             {
@@ -57,7 +60,7 @@ public sealed class LLM : ApplicationCommandModule
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex);
+                    _logger.LogError(ex.Message);
                 }
             });
 

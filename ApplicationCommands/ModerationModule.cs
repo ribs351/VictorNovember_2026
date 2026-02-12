@@ -5,7 +5,7 @@ using VictorNovember.Utils;
 
 namespace VictorNovember.ApplicationCommands;
 
-public sealed class Moderation : ApplicationCommandModule
+public sealed class ModerationModule : ApplicationCommandModule
 {
     #region Kick
     [SlashCommand("kick", "Kick a user")]

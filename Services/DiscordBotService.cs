@@ -44,7 +44,7 @@ public sealed class DiscordBotService : IHostedService
 
         _client.Ready += (_, _) =>
         {
-            Console.WriteLine("November is READY and connected.");
+            _logger.LogInformation("November is READY and connected.");
             return Task.CompletedTask;
         };
 
@@ -52,31 +52,18 @@ public sealed class DiscordBotService : IHostedService
         _client.GuildCreated += OnGuildBootstrap;
         _client.GuildMemberAdded += OnNewGuildMemberAdded;
 
-        _client.InteractionCreated += (s, e) =>
-        {
-            Console.WriteLine($"Name: {e.Interaction.Data?.Name}");
-
-            if (e.Interaction.Data?.Options is not null)
-            {
-                foreach (var opt in e.Interaction.Data.Options)
-                {
-                    Console.WriteLine($"Option: {opt.Name}");
-                }
-            }
-            return Task.CompletedTask;
-        };
-
         var commands = _client.UseCommandsNext(
             ConfigurationProviderService.GetCommandsNextConfig(prefix, _services));
         commands.RegisterCommands<Basic>();
 
         var slash = _client.UseSlashCommands(
             ConfigurationProviderService.GetSlashCommandsConfig(_services));
-        slash.RegisterCommands<General>();
-        slash.RegisterCommands<Fun>();
-        slash.RegisterCommands<LLM>();
-        slash.RegisterCommands<Moderation>();
-        slash.RegisterCommands<WelcomeImage>();
+        slash.RegisterCommands<GeneralModule>();
+        slash.RegisterCommands<FunModule>();
+        slash.RegisterCommands<LLMModule>();
+        slash.RegisterCommands<ModerationModule>();
+        slash.RegisterCommands<WelcomeImageModule>();
+        slash.RegisterCommands<NASAModule>(767618057447145492);
 
         _logger.LogInformation("Connecting to Discord...");
         await _client.ConnectAsync(new DiscordActivity("Pondering what to do next...", ActivityType.Playing), UserStatus.DoNotDisturb);

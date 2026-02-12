@@ -2,7 +2,6 @@
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
-using Microsoft.Extensions.DependencyInjection;
 using VictorNovember.Services.Welcome;
 
 namespace VictorNovember.ApplicationCommands;
@@ -10,11 +9,11 @@ namespace VictorNovember.ApplicationCommands;
 [SlashCommandGroup("welcome", "Configure welcome image generation.")]
 [SlashRequireGuild]
 [SlashRequireUserPermissions(Permissions.ManageGuild)]
-public class WelcomeImage : ApplicationCommandModule
+public class WelcomeImageModule : ApplicationCommandModule
 {
     private readonly WelcomeConfigurationService _configService;
     private readonly WelcomeImageRenderer _renderder;
-    public WelcomeImage(WelcomeConfigurationService configService, WelcomeImageRenderer renderer)
+    public WelcomeImageModule(WelcomeConfigurationService configService, WelcomeImageRenderer renderer)
     {
         _configService = configService;
         _renderder = renderer;

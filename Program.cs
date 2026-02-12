@@ -3,7 +3,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using VictorNovember.Data;
+using VictorNovember.Infrastructure;
+using VictorNovember.Interfaces;
 using VictorNovember.Services;
+using VictorNovember.Services.Fun;
 using VictorNovember.Services.Welcome;
 
 namespace VictorNovember;
@@ -21,17 +24,22 @@ public sealed class Program
                     options.UseSqlServer(
                         context.Configuration.GetConnectionString("NovemberDb"));
                 });
-
                 services.AddMemoryCache();
-                services.AddTransient<GoogleGeminiService>();
+                services.AddTransient<IGeminiService, GeminiService>();
                 services.AddScoped<ServerTrackingService>();
                 services.AddHostedService<DiscordBotService>();
                 services.AddHttpClient("welcome-images", client =>
                 {
                     client.Timeout = TimeSpan.FromSeconds(5);
                 });
+                services.Configure<NasaOptions>(context.Configuration.GetSection("Nasa"));
+                services.AddHttpClient<INasaClient, NasaClient>(client =>
+                {
+                    client.BaseAddress = new Uri("https://api.nasa.gov/");
+                });
                 services.AddTransient<WelcomeConfigurationService>();
                 services.AddTransient<WelcomeImageRenderer>();
+                services.AddTransient<IApodService, ApodService>();
             })
             .Build();
 

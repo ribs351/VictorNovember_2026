@@ -2,14 +2,13 @@
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
-using System.Numerics;
 using VictorNovember.Extensions;
+using static VictorNovember.Enums.FunModuleEnums;
 
 namespace VictorNovember.ApplicationCommands;
 
-public sealed class Fun : ApplicationCommandModule
+public sealed class FunModule : ApplicationCommandModule
 {
-    public enum CoinSide { Heads, Tails }
 
     [SlashCommand("coinflip", "Flips a coin")]
     [SlashCooldown(1, 10, SlashCooldownBucketType.Channel)]
@@ -25,8 +24,6 @@ public sealed class Fun : ApplicationCommandModule
     }
 
     #region RPS
-    public enum RpsChoice { Rock, Paper, Scissors }
-    public enum RpsOutcome { Draw, PlayerWin, NovemberWin }
 
     public static class RpsEngine
     {

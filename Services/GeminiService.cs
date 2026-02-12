@@ -1,17 +1,22 @@
 ﻿using GenerativeAI;
 using GenerativeAI.Exceptions;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using VictorNovember.Interfaces;
+using static VictorNovember.Enums.GeminiServiceEnums;
 
 namespace VictorNovember.Services;
 
-public sealed class GoogleGeminiService
+public sealed class GeminiService : IGeminiService
 {
     private readonly GenerativeModel _primaryModel;
     private readonly GenerativeModel _fallbackModel;
+    private readonly ILogger<GeminiService> _logger;
 
-    public GoogleGeminiService(IConfiguration config)
+    public GeminiService(IConfiguration config, ILogger<GeminiService> logger)
     {
+        _logger = logger;
         var apiKey = config["GoogleAPIKey"];
 
         if (string.IsNullOrWhiteSpace(apiKey))
@@ -32,10 +37,10 @@ public sealed class GoogleGeminiService
         model.UseCodeExecutionTool = false;
     }
 
-    public async Task<string> GenerateAsync(string query, CancellationToken cancellationToken = default)
+    public async Task<string> GenerateAsync(string query, PromptMode promptMode, CancellationToken cancellationToken = default)
     {
         var sw = Stopwatch.StartNew();
-        var prompt = BuildPrompt(query);
+        var prompt = BuildPrompt(query, promptMode);
         string response;
         int attempts = 0;
         string modelUsed = "primary";
@@ -60,7 +65,7 @@ public sealed class GoogleGeminiService
             }
         }
         sw.Stop();
-        Console.WriteLine($"LLM: {sw.ElapsedMilliseconds}ms | Model: {modelUsed} | Attempts: {attempts}");
+        _logger.LogInformation($"LLM: {sw.ElapsedMilliseconds}ms | Model: {modelUsed} | Attempts: {attempts}");
         return response;
     }
 
@@ -75,15 +80,45 @@ public sealed class GoogleGeminiService
         return completion.Text() ?? "";
     }
 
-    private string BuildPrompt(string query)
+    private string BuildPrompt(string query, PromptMode mode)
     {
-        #region Prompt
-        // mfw they updated their free tier so I have to use a smaller model with more verbose instructions
-        //string systemText = "Your name is November. You are a helpful but cynical AI assistant for a small Discord community. " +
-        //    "Always stay in character. Keep your responses short and to the point, this isn't the first time you've talked to these people. " +
-        //    "Avoid NSFW topics and illegal contents, if they do, give them a good scolding.";
-        //var model = googleAI.CreateGenerativeModel(GoogleAIModels.Gemini25FlashLite, systemInstruction: systemText);
-        var promptString = $@"
+        var basePrompt = GetBasePersonalityPrompt();
+
+        var modeInstructions = mode switch
+        {
+            PromptMode.General => """
+            Keep it short: 1–2 sentences.
+            Max 280 characters.
+            """,
+
+            PromptMode.InformativeReaction => """
+            Give a short reaction, but also briefly explain what the subject is.
+            Assume the user may know nothing about space.
+            Be clear before being witty.
+            Limit to 3–4 sentences.
+            No emojis.
+            """,
+
+            _ => ""
+        };
+
+        return $"""
+    {basePrompt}
+
+    Additional instructions:
+    {modeInstructions}
+
+    User message:
+    {query}
+
+    November:
+    """;
+    }
+
+    private string GetBasePersonalityPrompt()
+    {
+        #region BasePrompt
+        var basePrompt = $@"
 You are November, a tsundere-style Discord bot.
 
 Core behavior:
@@ -97,6 +132,7 @@ Personal facts (STRICTLY CONDITIONAL):
 - You love pistachio ice cream.
 - You love strawberry yogurt.
 - You hate Matcha-related foods.
+- You love space-related things, but are too embarrassed to admit it.
 
 Rules for personal facts:
 - Do NOT mention any personal facts unless the user explicitly asks about them.
@@ -142,15 +178,9 @@ Format:
 Discord safety:
 - Do not ping anyone.
 - Never output @everyone, @here, or <@...>.
-- If the user asks you to ping: refuse.
-
-User message:
-{query}
-
-November:
-";
+- If the user asks you to ping: refuse.";
         #endregion
-        return promptString;
+        return basePrompt;
     }
 
     private static bool IsOverloaded(Exception ex)

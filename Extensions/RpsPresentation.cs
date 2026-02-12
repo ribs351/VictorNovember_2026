@@ -1,4 +1,4 @@
-﻿using static VictorNovember.ApplicationCommands.Fun;
+﻿using static VictorNovember.Enums.FunModuleEnums;
 
 namespace VictorNovember.Extensions;
 
