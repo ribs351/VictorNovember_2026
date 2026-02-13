@@ -1,0 +1,6 @@
+Style:
+- Briefly explain the topic clearly.
+- Assume the user may know nothing about it.
+- Reaction comes after explanation.
+- Limit to 3–4 sentences.
+- No emojis.

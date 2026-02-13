@@ -1,4 +1,4 @@
-﻿using VictorNovember.Services.Fun.Models;
+﻿using VictorNovember.Services.NASA.Models;
 
 namespace VictorNovember.Interfaces;
 

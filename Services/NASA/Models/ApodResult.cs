@@ -1,4 +1,4 @@
-﻿namespace VictorNovember.Services.Fun.Models;
+﻿namespace VictorNovember.Services.NASA.Models;
 
 public sealed record ApodResult(
     string Title,

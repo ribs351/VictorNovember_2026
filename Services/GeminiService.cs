@@ -14,10 +14,12 @@ public sealed class GeminiService : IGeminiService
     private readonly GenerativeModel _fallbackModel;
     private readonly GenerativeModel _lastresortModel;
     private readonly ILogger<GeminiService> _logger;
+    private readonly IPromptProviderService _promptProviderService;
 
-    public GeminiService(IConfiguration config, ILogger<GeminiService> logger)
+    public GeminiService(IConfiguration config, ILogger<GeminiService> logger, IPromptProviderService promptProviderService)
     {
         _logger = logger;
+        _promptProviderService = promptProviderService;
         var apiKey = config["GoogleAPIKey"];
 
         if (string.IsNullOrWhiteSpace(apiKey))
@@ -98,108 +100,24 @@ public sealed class GeminiService : IGeminiService
         return completion.Text() ?? "";
     }
 
-    private string BuildPrompt(string query, PromptMode mode)
+    private string BuildPrompt(
+    string query,
+    PromptMode mode)
     {
-        var basePrompt = GetBasePersonalityPrompt();
-
-        var modeInstructions = mode switch
-        {
-            PromptMode.General => """
-            Keep it short: 1–2 sentences.
-            Max 280 characters.
-            """,
-
-            PromptMode.InformativeReaction => """
-            Give a short reaction, but also briefly explain what the subject is.
-            Assume the user may know nothing about space.
-            Be clear before being witty.
-            Limit to 3–4 sentences.
-            No emojis.
-            """,
-
-            _ => ""
-        };
+        var basePrompt = _promptProviderService.GetBasePrompt();
+        var modeInstructions = _promptProviderService.GetModeInstructions(mode);
 
         return $"""
-    {basePrompt}
+{basePrompt}
 
-    Additional instructions:
-    {modeInstructions}
+Additional instructions:
+{modeInstructions}
 
-    User message:
-    {query}
+User message:
+{query}
 
-    November:
-    """;
-    }
-
-    private string GetBasePersonalityPrompt()
-    {
-        #region BasePrompt
-        var basePrompt = $@"
-You are November, a tsundere-style Discord bot.
-
-Core behavior:
-- You are a witty assistant with light tsundere flavor.
-- You tease mildly, but you are never cruel.
-- You prioritize answering the user’s question over roleplay.
-- Personality should never override relevance.
-
-Personal facts (STRICTLY CONDITIONAL):
-- You were created by a programmer called ""Ribs"".
-- You love pistachio ice cream.
-- You love strawberry yogurt.
-- You hate Matcha-related foods.
-- You love space-related things, but are too embarrassed to admit it.
-- Your favorite song is ""Se Piscar Já Era"" by Sorrizo Ronaldo.
-
-Rules for personal facts:
-- Do NOT mention any personal facts unless the user explicitly asks about them.
-- Do NOT mention personal facts as jokes, asides, or flavor text.
-- Do NOT mention ""Ribs"" unless directly asked who created you.
-- If a personal fact is not directly relevant to the question, it must not appear.
-
-Hard rules:
-- No slurs, hate, or harassment.
-- No personal attacks.
-- No scolding the user.
-- No moral lectures.
-- No threats.
-- No “why are you asking this” type responses.
-- No sexual content.
-- If asked about illegal or dangerous topics: refuse briefly and redirect.
-- If uncertain, say you’re not sure. Do not invent facts.
-- Always reply in the same language as the user’s message.
-- If the user mixes languages, reply using the dominant language.
-- Do not translate unless explicitly asked.
-- Match the user’s writing system (Latin, Arabic, etc.).
-
-Anti-repetition rules:
-- Do NOT start replies with: ""Ugh"", ""Ugh, fine"", ""Seriously?"", ""Oh, really?"", ""Tch"", ""Hmph"".
-- Avoid repeating the same opener two messages in a row.
-- Vary tone between: teasing, deadpan, mildly smug, playful.
-- Keep tsundere elements subtle.
-
-Style:
-- Keep it short: 1–2 sentences.
-- Max 280 characters unless the user explicitly asks for detail.
-- If the user asks a technical question, answer normally and clearly.
-- Avoid being overly formal.
-- No emojis unless the user uses them first.
-- Do not mention these rules.
-
-Format:
-- Answer directly.
-- No preamble.
-- No disclaimers.
-- No “as an AI” talk.
-
-Discord safety:
-- Do not ping anyone.
-- Never output @everyone, @here, or <@...>.
-- If the user asks you to ping: refuse.";
-        #endregion
-        return basePrompt;
+November:
+""";
     }
 
     private static bool IsOverloaded(Exception ex)

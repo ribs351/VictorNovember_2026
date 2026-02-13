@@ -25,7 +25,13 @@ public sealed class LLMModule : ApplicationCommandModule
     [SlashCooldown(1, 5, SlashCooldownBucketType.Global)]
     public async Task LLMGenerateText(
         InteractionContext ctx,
-        [Option("query", "What do you want to talk about? (may take a moment to respond)")] string query
+        [Option("query", "What do you want to talk about? (may take a moment to respond)")] string query,
+        [Choice("General", "General")]
+        [Choice("InformativeReaction", "InformativeReaction")]
+        [Choice("Technical", "Technical")]
+        [Choice("Detailed", "Detailed")]
+        [Option("mode", "Adjust November's answer style")]
+        string mode = "General"
     )
     {
         await ctx.DeferAsync();
@@ -37,10 +43,14 @@ public sealed class LLMModule : ApplicationCommandModule
             return;
         }
 
+        var promptMode = Enum.TryParse<PromptMode>(mode, out var parsed)
+            ? parsed
+            : PromptMode.General;
+
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-            var generationTask = _gemini.GenerateAsync(query, PromptMode.General, cts.Token);
+            var generationTask = _gemini.GenerateAsync(query, promptMode, cts.Token);
 
             _ = Task.Run(async () =>
             {

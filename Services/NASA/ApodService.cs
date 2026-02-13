@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using VictorNovember.Infrastructure.Models;
 using VictorNovember.Interfaces;
-using VictorNovember.Services.Fun.Models;
+using VictorNovember.Services.NASA.Models;
 using static VictorNovember.Enums.GeminiServiceEnums;
 
-namespace VictorNovember.Services.Fun;
+namespace VictorNovember.Services.NASA;
 
 public sealed class ApodService : IApodService
 {

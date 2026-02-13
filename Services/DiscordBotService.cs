@@ -39,7 +39,7 @@ public sealed class DiscordBotService : IHostedService
         if (string.IsNullOrWhiteSpace(token))
             throw new InvalidOperationException("Discord bot token missing.");
 
-        var discordConfig = ConfigurationProviderService.GetDiscordConfig(token);
+        var discordConfig = DiscordConfigurationProvider.GetDiscordConfig(token);
         _client = new DiscordClient(discordConfig);
 
         _client.Ready += (_, _) =>
@@ -53,11 +53,11 @@ public sealed class DiscordBotService : IHostedService
         _client.GuildMemberAdded += OnNewGuildMemberAdded;
 
         var commands = _client.UseCommandsNext(
-            ConfigurationProviderService.GetCommandsNextConfig(prefix, _services));
+            DiscordConfigurationProvider.GetCommandsNextConfig(prefix, _services));
         commands.RegisterCommands<Basic>();
 
         var slash = _client.UseSlashCommands(
-            ConfigurationProviderService.GetSlashCommandsConfig(_services));
+            DiscordConfigurationProvider.GetSlashCommandsConfig(_services));
         slash.RegisterCommands<GeneralModule>();
         slash.RegisterCommands<FunModule>();
         slash.RegisterCommands<LLMModule>();

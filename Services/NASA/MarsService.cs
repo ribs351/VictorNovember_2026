@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VictorNovember.Services.Fun
+namespace VictorNovember.Services.NASA
 {
     internal class MarsService
     {

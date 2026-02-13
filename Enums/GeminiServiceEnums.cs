@@ -2,5 +2,11 @@
 
 public sealed class GeminiServiceEnums
 {
-    public enum PromptMode { General, InformativeReaction }
+    public enum PromptMode 
+    { 
+        General,
+        InformativeReaction,
+        Technical,
+        Detailed,
+    }
 }

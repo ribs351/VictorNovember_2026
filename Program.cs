@@ -6,7 +6,7 @@ using VictorNovember.Data;
 using VictorNovember.Infrastructure;
 using VictorNovember.Interfaces;
 using VictorNovember.Services;
-using VictorNovember.Services.Fun;
+using VictorNovember.Services.NASA;
 using VictorNovember.Services.Welcome;
 
 namespace VictorNovember;
@@ -40,6 +40,7 @@ public sealed class Program
                 services.AddTransient<WelcomeConfigurationService>();
                 services.AddTransient<WelcomeImageRenderer>();
                 services.AddTransient<IApodService, ApodService>();
+                services.AddSingleton<IPromptProviderService, FilePromptProviderService>();
             })
             .Build();
 

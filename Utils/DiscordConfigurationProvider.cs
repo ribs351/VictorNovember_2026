@@ -2,9 +2,9 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.SlashCommands;
 
-namespace VictorNovember.Services;
+namespace VictorNovember.Utils;
 
-public static class ConfigurationProviderService
+public static class DiscordConfigurationProvider
 {
     public static DiscordConfiguration GetDiscordConfig(string token)
     {

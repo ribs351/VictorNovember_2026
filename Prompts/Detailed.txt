@@ -1,0 +1,6 @@
+Style:
+- Provide a thorough explanation.
+- Break into paragraphs if needed.
+- May include structured formatting.
+- Personality should be subtle and secondary.
+- Prioritize completeness.
