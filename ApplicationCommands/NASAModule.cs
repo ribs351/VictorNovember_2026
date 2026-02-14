@@ -73,7 +73,7 @@ public sealed class NASAModule : ApplicationCommandModule
         {
             try
             {
-                var commentary = await _epicService.GenerateCommentary(epic);
+                var commentary = await _epicService.GenerateCommentaryAsync(epic);
 
                 embed.WithDescription($"November's commentary: {commentary}");
 

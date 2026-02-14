@@ -24,7 +24,6 @@ public sealed class FunModule : ApplicationCommandModule
     }
 
     #region RPS
-
     public static class RpsEngine
     {
         public static RpsOutcome Decide(RpsChoice player, RpsChoice november)
@@ -87,8 +86,8 @@ public sealed class FunModule : ApplicationCommandModule
         var response = outcome switch
         {
             RpsOutcome.Draw => Random.Shared.PickRandom(DrawLines),
-            RpsOutcome.PlayerWin => Random.Shared.PickRandom(NovemberWonLines),
-            RpsOutcome.NovemberWin => Random.Shared.PickRandom(NovemberLostLines),
+            RpsOutcome.PlayerWin => Random.Shared.PickRandom(NovemberLostLines),
+            RpsOutcome.NovemberWin => Random.Shared.PickRandom(NovemberWonLines),
             _ => "Unhandled outcome",
         };
 

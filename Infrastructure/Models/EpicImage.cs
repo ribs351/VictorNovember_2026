@@ -14,6 +14,18 @@ public sealed class EpicImage
     public string Image { get; set; } = string.Empty;
     [JsonConverter(typeof(EpicDateTimeConverter))]
     public DateTime Date { get; set; }
+    public Coordinates? Coords { get; set; }
+}
+
+public sealed class Coordinates
+{
+    public Centroid? Centroid_Coordinates { get; set; }
+}
+
+public sealed class Centroid
+{
+    public double Lat { get; set; }
+    public double Lon { get; set; }
 }
 
 public sealed class EpicDateTimeConverter : JsonConverter<DateTime>

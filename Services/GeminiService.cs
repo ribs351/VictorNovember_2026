@@ -51,9 +51,9 @@ public sealed class GeminiService : IGeminiService
             cancellationToken);
     }
 
-    public Task<string> GenerateVisionCommentaryAsync(string imageUrl, string caption, CancellationToken cancellationToken = default)
+    public Task<string> GenerateVisionCommentaryAsync(string imageUrl, double? latitude, double? longitude, string caption, CancellationToken cancellationToken = default)
     {
-        var prompt = BuildVisionPrompt(caption);
+        var prompt = BuildEPICPrompt(caption, latitude, longitude);
         return ExecuteWithFallbackAsync(
             async (model, ct) => await TryGenerate(model, prompt, imageUrl, ct),
             "Vision",
@@ -149,7 +149,29 @@ public sealed class GeminiService : IGeminiService
         return completion.Text() ?? "";
     }
 
-    private string BuildVisionPrompt(string caption, PromptMode mode = PromptMode.InformativeReaction)
+    private string BuildEPICPrompt(string caption, double? latitude, double? longitude, PromptMode mode = PromptMode.Technical)
+    {
+        var basePrompt = _promptProviderService.GetBasePrompt();
+        var modeInstructions = _promptProviderService.GetModeInstructions(mode);
+        var locationText = latitude.HasValue && longitude.HasValue
+                            ? $"The image centroid is located at latitude {latitude:F4} and longitude {longitude:F4}."
+                            : "No centroid coordinate data is available.";
+        return $"""
+{basePrompt}
+
+Additional instructions:
+{modeInstructions}
+
+You are observing an official NASA EPIC Earth image.
+
+Caption: {caption}
+{locationText}
+
+Provide a concise, scientifically grounded commentary.
+""";
+    }
+
+    private string BuildVisionPrompt(string caption, PromptMode mode = PromptMode.Technical)
     {
         var basePrompt = _promptProviderService.GetBasePrompt();
         var modeInstructions = _promptProviderService.GetModeInstructions(mode);
