@@ -48,7 +48,7 @@ public sealed class ApodService : IApodService
 
                 var prompt = BuildPrompt(title, explanation);
 
-                var commentary = await _geminiService.GenerateAsync(
+                var commentary = await _geminiService.GenerateTextAsync(
                     prompt,
                     PromptMode.InformativeReaction,
                     CancellationToken.None);

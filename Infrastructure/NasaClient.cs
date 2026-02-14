@@ -32,7 +32,4 @@ public class NasaClient : INasaClient
 
         return apod ?? throw new InvalidOperationException("NASA returned null.");
     }
-
-    public Task<MarsRoverResponse> GetMarsPhotosAsync(CancellationToken ct = default)
-        => throw new NotImplementedException();
 }

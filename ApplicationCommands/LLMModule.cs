@@ -50,7 +50,7 @@ public sealed class LLMModule : ApplicationCommandModule
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-            var generationTask = _gemini.GenerateAsync(query, promptMode, cts.Token);
+            var generationTask = _gemini.GenerateTextAsync(query, promptMode, cts.Token);
 
             _ = Task.Run(async () =>
             {

@@ -37,8 +37,14 @@ public sealed class Program
                 {
                     client.BaseAddress = new Uri("https://api.nasa.gov/");
                 });
+                services.AddHttpClient<IEpicClient, EpicClient>(client =>
+                {
+                    client.BaseAddress = new Uri("https://epic.gsfc.nasa.gov/api/");
+                });
+                services.AddTransient<IEpicService, EpicService>();
                 services.AddTransient<WelcomeConfigurationService>();
                 services.AddTransient<WelcomeImageRenderer>();
+                //services.AddTransient<IImageDownloader, ImageDownloader>();
                 services.AddTransient<IApodService, ApodService>();
                 services.AddSingleton<IPromptProviderService, FilePromptProviderService>();
             })

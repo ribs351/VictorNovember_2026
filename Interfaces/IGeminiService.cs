@@ -4,5 +4,6 @@ namespace VictorNovember.Interfaces;
 
 public interface IGeminiService
 {
-    Task<string> GenerateAsync( string query, PromptMode mode = PromptMode.General, CancellationToken cancellationToken = default);
+    Task<string> GenerateTextAsync(string query, PromptMode mode = PromptMode.General, CancellationToken cancellationToken = default);
+    Task<string> GenerateVisionCommentaryAsync(string imageUrl, string caption, CancellationToken cancellationToken = default);
 }
