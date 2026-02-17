@@ -18,7 +18,6 @@ public sealed class MemorialSigil
     {
         _logger.LogInformation("MemorialSigil firing for {PersonName}", personName);
 
-        // Discord client resolution and DM sending goes here
         var client = _clientProvider.Client;
         try 
         {

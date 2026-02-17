@@ -29,7 +29,7 @@ public sealed class MemorialService : IMemorialService
     {
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
-        var cron = Hangfire.Cron.Yearly(anniversaryDate.Month, anniversaryDate.Day);
+        var cron = Cron.Yearly(anniversaryDate.Month, anniversaryDate.Day);
 
         var memorial = new Data.Entities.Memorial
         {
