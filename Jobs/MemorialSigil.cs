@@ -16,7 +16,7 @@ public sealed class MemorialSigil
 
     public async Task ExecuteAsync(string personName, string message, ulong recipientUserId)
     {
-        _logger.LogInformation("MemorialSigil firing for {PersonName}", personName);
+        _logger.LogInformation($"MemorialSigil firing for {personName}");
 
         var client = _clientProvider.Client;
         try 
@@ -26,13 +26,20 @@ public sealed class MemorialSigil
             if (user is not DiscordMember member)
             {
                 // Irrelevant in practice, I'll always be in the same guild with the bot, but this is to get rid of the cast warning
-                _logger.LogWarning("MemorialSigil: Could not resolve {UserId} as DiscordMember", recipientUserId);
+                _logger.LogWarning($"MemorialSigil: Could not resolve {recipientUserId} as DiscordMember");
                 return;
             }
 
             var dm = await member.CreateDmChannelAsync();
-            await dm.SendMessageAsync(message);
-            _logger.LogInformation("MemorialSigil delivered for {PersonName}", personName);
+            var embed = new DiscordEmbedBuilder()
+                            .WithTitle($"In Memory of {personName}")
+                            .WithDescription(message)
+                            .WithColor(new DiscordColor(148, 163, 184))
+                            .WithFooter("Lest we forget.")
+                            .WithTimestamp(DateTimeOffset.UtcNow);
+
+            await dm.SendMessageAsync(new DiscordMessageBuilder().AddEmbed(embed));
+            _logger.LogInformation($"MemorialSigil delivered for {personName}");
         }
         catch 
         {
