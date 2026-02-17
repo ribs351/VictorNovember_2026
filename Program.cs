@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Hangfire;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -6,8 +7,10 @@ using VictorNovember.Data;
 using VictorNovember.Infrastructure;
 using VictorNovember.Interfaces;
 using VictorNovember.Services;
+using VictorNovember.Services.Memorial;
 using VictorNovember.Services.NASA;
 using VictorNovember.Services.Welcome;
+using VictorNovember.Utils;
 
 namespace VictorNovember;
 
@@ -47,6 +50,15 @@ public sealed class Program
                 //services.AddTransient<IImageDownloader, ImageDownloader>();
                 services.AddTransient<IApodService, ApodService>();
                 services.AddSingleton<IPromptProviderService, FilePromptProviderService>();
+                services.AddSingleton<DiscordClientProvider>();
+                // Memorial Sigil Service, lest we forget...
+                services.AddHangfire(config => config
+                        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                        .UseSimpleAssemblyNameTypeSerializer()
+                        .UseRecommendedSerializerSettings()
+                        .UseSqlServerStorage(context.Configuration.GetConnectionString("NovemberDb")));
+                services.AddHangfireServer();
+                services.AddTransient<IMemorialService, MemorialService>();
             })
             .Build();
 

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using VictorNovember.ApplicationCommands;
 using VictorNovember.BasicCommands;
+using VictorNovember.Interfaces;
 using VictorNovember.Services.Welcome;
 using VictorNovember.Utils;
 
@@ -18,17 +19,23 @@ public sealed class DiscordBotService : IHostedService
     private readonly IServiceProvider _services;
     private readonly IConfiguration _config;
     private readonly ILogger<DiscordBotService> _logger;
+    private readonly DiscordClientProvider _clientProvider;
+    private readonly IMemorialService _memorialService;
 
     private DiscordClient? _client;
 
     public DiscordBotService(
         IServiceProvider services,
         IConfiguration config,
-        ILogger<DiscordBotService> logger)
+        ILogger<DiscordBotService> logger,
+        DiscordClientProvider clientProvider,
+        IMemorialService memorialService)
     {
         _services = services;
         _config = config;
         _logger = logger;
+        _clientProvider = clientProvider;
+        _memorialService = memorialService;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -42,10 +49,10 @@ public sealed class DiscordBotService : IHostedService
         var discordConfig = DiscordConfigurationProvider.GetDiscordConfig(token);
         _client = new DiscordClient(discordConfig);
 
-        _client.Ready += (_, _) =>
+        _client.Ready += async (_, _) =>
         {
             _logger.LogInformation("November is READY and connected.");
-            return Task.CompletedTask;
+            await _memorialService.SyncJobsAsync(cancellationToken);
         };
 
         _client.GuildAvailable += OnGuildBootstrap;
@@ -68,6 +75,7 @@ public sealed class DiscordBotService : IHostedService
         _logger.LogInformation("Connecting to Discord...");
         await _client.ConnectAsync(new DiscordActivity("Pondering what to do next...", ActivityType.Playing), UserStatus.DoNotDisturb);
         await slash.RefreshCommands();
+        _clientProvider.SetClient(_client);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

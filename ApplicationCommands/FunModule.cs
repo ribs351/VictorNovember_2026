@@ -11,7 +11,6 @@ public sealed class FunModule : ApplicationCommandModule
 {
 
     [SlashCommand("coinflip", "Flips a coin")]
-    [SlashCooldown(1, 10, SlashCooldownBucketType.Channel)]
     public async Task CoinFlipAsync(InteractionContext ctx)
     {
         await ctx.DeferAsync();
@@ -62,7 +61,6 @@ public sealed class FunModule : ApplicationCommandModule
     };
 
     [SlashCommand("rps", "Play a Rock, Paper, Scissors with November")]
-    [SlashCooldown(1, 10, SlashCooldownBucketType.Channel)]
     public async Task RockPaperScissorsAsync(
         InteractionContext ctx, 
         [Choice("Rock", "rock")]
