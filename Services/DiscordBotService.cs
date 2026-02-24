@@ -85,6 +85,8 @@ public sealed class DiscordBotService : IHostedService
         {
             _logger.LogInformation("Disconnecting from Discord...");
             _client.GuildMemberAdded -= OnNewGuildMemberAdded;
+            _client.GuildCreated -= OnGuildBootstrap;
+            _client.GuildAvailable -= OnGuildBootstrap;
             await _client.DisconnectAsync();
         }
     }

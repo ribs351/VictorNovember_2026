@@ -41,9 +41,9 @@ public sealed class MemorialSigil
             await dm.SendMessageAsync(new DiscordMessageBuilder().AddEmbed(embed));
             _logger.LogInformation($"MemorialSigil delivered for {personName}");
         }
-        catch 
+        catch (Exception ex)
         {
-            _logger.LogInformation("Failed to send DM to recipient.");
+            _logger.LogError(ex, "Failed to send memorial DM for {PersonName} to {UserId}", personName, recipientUserId);
         }
     }
 }

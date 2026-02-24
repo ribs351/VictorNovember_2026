@@ -13,7 +13,7 @@ public class NovemberContext : DbContext
 
     public DbSet<Server> Servers => Set<Server>();
     public DbSet<Memorial> Memorials => Set<Memorial>();
-
+    public DbSet<SearchUsage> SearchUsages => Set<SearchUsage>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Server>(entity =>
@@ -46,5 +46,9 @@ public class NovemberContext : DbContext
             entity.Property(e => e.Date)
                   .IsRequired();
         });
+
+        modelBuilder.Entity<SearchUsage>()
+        .HasIndex(x => x.MonthKey)
+        .IsUnique();
     }
 }

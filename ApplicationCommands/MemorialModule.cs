@@ -42,7 +42,26 @@ public sealed class MemorialModule : ApplicationCommandModule
 
         try
         {
-            var date = new DateOnly((int)DateTime.UtcNow.Year, (int)month, (int)day);
+            if (month is < 1 or > 12 || day is < 1 or > 31)
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+                    .WithContent("Invalid month or day."));
+                return;
+            }
+
+            DateOnly date;
+            try
+            {
+                date = new DateOnly(DateTime.UtcNow.Year, (int)month, (int)day);
+            }
+            catch
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+                    .WithContent("Invalid date combination."));
+                return;
+            }
+
+
             var memorial = await _memorialService.AddMemorialAsync(
                 name,
                 message,

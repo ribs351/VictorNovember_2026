@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using VictorNovember.Data;
 using VictorNovember.Infrastructure;
 using VictorNovember.Interfaces;
 using VictorNovember.Services;
+using VictorNovember.Services.BraveSearch;
 using VictorNovember.Services.Memorial;
 using VictorNovember.Services.NASA;
 using VictorNovember.Services.Welcome;
@@ -47,6 +49,7 @@ public sealed class Program
                 services.AddTransient<IEpicService, EpicService>();
                 services.AddTransient<WelcomeConfigurationService>();
                 services.AddTransient<WelcomeImageRenderer>();
+                // Haven't found a use for this yet...
                 //services.AddTransient<IImageDownloader, ImageDownloader>();
                 services.AddTransient<IApodService, ApodService>();
                 services.AddSingleton<IPromptProviderService, FilePromptProviderService>();
@@ -59,6 +62,15 @@ public sealed class Program
                         .UseSqlServerStorage(context.Configuration.GetConnectionString("NovemberDb")));
                 services.AddHangfireServer();
                 services.AddTransient<IMemorialService, MemorialService>();
+                services.Configure<BraveSearchOptions>(context.Configuration.GetSection("BraveSearch"));
+                services.AddHttpClient<IBraveSearchClient, BraveSearchClient>((sp, client) =>
+                {
+                    var options = sp.GetRequiredService<IOptions<BraveSearchOptions>>().Value;
+                    client.BaseAddress = new Uri(options.BaseUrl);
+                    client.Timeout = TimeSpan.FromSeconds(5);
+                });
+                services.AddTransient<ISearchUsageTracker, DatabaseSearchUsageTracker>();
+                services.AddTransient<ISearchService, SearchService>();
             })
             .Build();
 

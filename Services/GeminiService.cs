@@ -12,7 +12,7 @@ public sealed class GeminiService : IGeminiService
 {
     private readonly GenerativeModel _primaryModel;
     private readonly GenerativeModel _fallbackModel;
-    private readonly GenerativeModel _lastresortModel;
+    private readonly GenerativeModel _lastResortModel;
     private readonly ILogger<GeminiService> _logger;
     private readonly IPromptProviderService _promptProviderService;
 
@@ -28,11 +28,11 @@ public sealed class GeminiService : IGeminiService
         var googleAI = new GoogleAi(apiKey);
         _primaryModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemmma3_27B);
         _fallbackModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3_12B);
-        _lastresortModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3n_E4B);
+        _lastResortModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3n_E4B);
 
         Configure(_primaryModel);
         Configure(_fallbackModel);
-        Configure(_lastresortModel);
+        Configure(_lastResortModel);
     }
 
     private static void Configure(GenerativeModel model)
@@ -87,7 +87,7 @@ public sealed class GeminiService : IGeminiService
 
             attempts++;
             modelUsed = "lastResort";
-            return await generator(_lastresortModel, cancellationToken)
+            return await generator(_lastResortModel, cancellationToken)
                 ?? string.Empty;
         }
         finally
