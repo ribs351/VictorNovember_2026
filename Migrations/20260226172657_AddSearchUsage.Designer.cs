@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictorNovember.Data;
 
@@ -11,9 +12,11 @@ using VictorNovember.Data;
 namespace VictorNovember.Migrations
 {
     [DbContext(typeof(NovemberContext))]
-    partial class NovemberContextModelSnapshot : ModelSnapshot
+    [Migration("20260226172657_AddSearchUsage")]
+    partial class AddSearchUsage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -1,6 +1,9 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.EventHandling;
+using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,6 +62,20 @@ public sealed class DiscordBotService : IHostedService
         _client.GuildCreated += OnGuildBootstrap;
         _client.GuildMemberAdded += OnNewGuildMemberAdded;
 
+        _client.UseInteractivity(new InteractivityConfiguration
+        {
+            Timeout = TimeSpan.FromMinutes(2),
+
+            PaginationButtons = new PaginationButtons
+            {
+                SkipLeft = new DiscordButtonComponent(ButtonStyle.Secondary, "pagination_first", "⏮"),
+                Left = new DiscordButtonComponent(ButtonStyle.Secondary, "pagination_prev", "◀"),
+                Right = new DiscordButtonComponent(ButtonStyle.Secondary, "pagination_next", "▶"),
+                SkipRight = new DiscordButtonComponent(ButtonStyle.Secondary, "pagination_last", "⏭"),
+                Stop = new DiscordButtonComponent(ButtonStyle.Danger, "pagination_stop", "⏹")
+            }
+        });
+
         var commands = _client.UseCommandsNext(
             DiscordConfigurationProvider.GetCommandsNextConfig(prefix, _services));
         commands.RegisterCommands<Basic>();
@@ -72,6 +89,7 @@ public sealed class DiscordBotService : IHostedService
         slash.RegisterCommands<WelcomeImageModule>();
         slash.RegisterCommands<NASAModule>();
         slash.RegisterCommands<MemorialModule>();
+        slash.RegisterCommands<SearchModule>();
 
         _logger.LogInformation("Connecting to Discord...");
         await _client.ConnectAsync(new DiscordActivity("Pondering what to do next...", ActivityType.Playing), UserStatus.DoNotDisturb);

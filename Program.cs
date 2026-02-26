@@ -20,7 +20,7 @@ public sealed class Program
 {
     public static async Task Main(string[] args)
     {
-
+        // TODO: move modules into separate assemblies
         var host = Host.CreateDefaultBuilder(args)
             .ConfigureServices((context, services) =>
             {

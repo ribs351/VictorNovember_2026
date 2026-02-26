@@ -4,5 +4,5 @@ namespace VictorNovember.Interfaces;
 
 public interface ISearchService
 {
-    Task<SearchResult> SearchAsync(string query, CancellationToken ct = default);
+    Task<SearchResult> SearchWebAsync(string query, CancellationToken ct = default);
 }

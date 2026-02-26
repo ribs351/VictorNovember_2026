@@ -2,5 +2,5 @@
 
 public interface IBraveSearchClient
 {
-    Task<SearchResult> SearchAsync(string query, CancellationToken ct);
+    Task<SearchResult> SearchWebAsync(string query, CancellationToken ct = default);
 }

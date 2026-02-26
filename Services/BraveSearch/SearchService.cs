@@ -24,7 +24,7 @@ public sealed class SearchService : ISearchService
         _logger = logger;
     }
 
-    public async Task<SearchResult> SearchAsync(string query, CancellationToken ct)
+    public async Task<SearchResult> SearchWebAsync(string query, CancellationToken ct = default)
     {
         // TODO: request coalescing (in-flight deduplication)
         var cacheKey = $"search:{query.ToLowerInvariant()}";
@@ -35,7 +35,7 @@ public sealed class SearchService : ISearchService
         if (!await _usage.TryAndIncrementAsync(ct))
             throw new InvalidOperationException("Monthly search quota reached.");
 
-        var result = await _client.SearchAsync(query, ct);
+        var result = await _client.SearchWebAsync(query, ct);
 
         _cache.Set(cacheKey, result, TimeSpan.FromHours(12));
 
