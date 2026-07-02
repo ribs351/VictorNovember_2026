@@ -61,6 +61,7 @@ public sealed class DiscordBotService : IHostedService
         _client.GuildAvailable += OnGuildBootstrap;
         _client.GuildCreated += OnGuildBootstrap;
         _client.GuildMemberAdded += OnNewGuildMemberAdded;
+        _client.MessageCreated += OnMessageCreated;
 
         _client.UseInteractivity(new InteractivityConfiguration
         {
@@ -90,6 +91,7 @@ public sealed class DiscordBotService : IHostedService
         slash.RegisterCommands<NASAModule>();
         slash.RegisterCommands<MemorialModule>();
         slash.RegisterCommands<SearchModule>();
+        slash.RegisterCommands<HoneypotModule>();
 
         _logger.LogInformation("Connecting to Discord...");
         await _client.ConnectAsync(new DiscordActivity("Pondering what to do next...", ActivityType.Playing), UserStatus.DoNotDisturb);
@@ -105,6 +107,7 @@ public sealed class DiscordBotService : IHostedService
             _client.GuildMemberAdded -= OnNewGuildMemberAdded;
             _client.GuildCreated -= OnGuildBootstrap;
             _client.GuildAvailable -= OnGuildBootstrap;
+            _client.MessageCreated -= OnMessageCreated;
             await _client.DisconnectAsync();
         }
     }
@@ -157,6 +160,28 @@ public sealed class DiscordBotService : IHostedService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send welcome image for {UserId}", e.Member.Id);
+        }
+    }
+
+    private async Task OnMessageCreated(DiscordClient s, DSharpPlus.EventArgs.MessageCreateEventArgs e)
+    {
+        if (e.Author.IsBot) return;
+        if (e.Guild is null) return;
+
+        try
+        {
+            using var scope = _services.CreateScope();
+            var honeypot = scope.ServiceProvider.GetRequiredService<IHoneypotService>();
+
+            var config = await honeypot.GetConfigAsync(e.Guild.Id);
+            if (config is null || !config.Enabled || e.Channel.Id != config.ChannelId) return;
+
+            var member = await e.Guild.GetMemberAsync(e.Author.Id);
+            await honeypot.HandleHitAsync(e.Guild, member, e.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling honeypot check for message {MessageId}", e.Message.Id);
         }
     }
 }

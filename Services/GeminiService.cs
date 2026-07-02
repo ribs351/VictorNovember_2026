@@ -12,7 +12,7 @@ public sealed class GeminiService : IGeminiService
 {
     private readonly GenerativeModel _primaryModel;
     private readonly GenerativeModel _fallbackModel;
-    private readonly GenerativeModel _lastResortModel;
+    //private readonly GenerativeModel _lastResortModel;
     private readonly ILogger<GeminiService> _logger;
     private readonly IPromptProviderService _promptProviderService;
 
@@ -26,13 +26,13 @@ public sealed class GeminiService : IGeminiService
             throw new InvalidOperationException("GoogleAPIKey is missing.");
 
         var googleAI = new GoogleAi(apiKey);
-        _primaryModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemmma3_27B);
-        _fallbackModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3_12B);
-        _lastResortModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3n_E4B);
+        _primaryModel = googleAI.CreateGenerativeModel("gemma-4-31b-it", null, null, _promptProviderService.GetBasePrompt());
+        _fallbackModel = googleAI.CreateGenerativeModel("gemma-4-26b-a4b-it");
+        //_lastResortModel = googleAI.CreateGenerativeModel(GoogleAIModels.Gemma3n_E4B);
 
         Configure(_primaryModel);
         Configure(_fallbackModel);
-        Configure(_lastResortModel);
+        //Configure(_lastResortModel);
     }
 
     private static void Configure(GenerativeModel model)
@@ -44,7 +44,8 @@ public sealed class GeminiService : IGeminiService
 
     public Task<string> GenerateTextAsync(string query, PromptMode promptMode, CancellationToken cancellationToken = default)
     {
-        var prompt = BuildTextPrompt(query, promptMode);
+        //var prompt = BuildTextPrompt(query, promptMode);
+        var prompt = query;
         return ExecuteWithFallbackAsync(
             async (model, ct) => await TryGenerate(model, prompt, ct),
             "Text-only",
@@ -82,13 +83,13 @@ public sealed class GeminiService : IGeminiService
 
             attempts++;
             modelUsed = "fallback";
-            result = await generator(_fallbackModel, cancellationToken);
-            if (result is not null) return result;
+            return result = await generator(_fallbackModel, cancellationToken) ?? string.Empty;
+            //if (result is not null) return result;
 
-            attempts++;
-            modelUsed = "lastResort";
-            return await generator(_lastResortModel, cancellationToken)
-                ?? string.Empty;
+            //attempts++;
+            //modelUsed = "lastResort";
+            //return await generator(_lastResortModel, cancellationToken)
+            //    ?? string.Empty;
         }
         finally
         {

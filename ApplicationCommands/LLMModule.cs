@@ -96,7 +96,7 @@ public sealed class LLMModule : ApplicationCommandModule
             if (ex is not ApiException)
                 Console.WriteLine(ex);
 
-            var msg = PersonalityUtils.FromException(ex, includeCode: false);
+            var msg = PersonalityUtils.FromException(ex, includeCode: true);
 
             await ctx.EditResponseAsync(new DiscordWebhookBuilder()
                 .WithContent(msg));

@@ -14,6 +14,8 @@ public class NovemberContext : DbContext
     public DbSet<Server> Servers => Set<Server>();
     public DbSet<Memorial> Memorials => Set<Memorial>();
     public DbSet<SearchUsage> SearchUsages => Set<SearchUsage>();
+    public DbSet<HoneypotConfig> HoneypotConfigs => Set<HoneypotConfig>();
+    public DbSet<HoneypotHit> HoneypotHits => Set<HoneypotHit>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Server>(entity =>
@@ -50,5 +52,27 @@ public class NovemberContext : DbContext
         modelBuilder.Entity<SearchUsage>()
         .HasIndex(x => x.MonthKey)
         .IsUnique();
+
+        modelBuilder.Entity<HoneypotConfig>(entity =>
+        {
+            entity.ToTable("HoneypotConfigs");
+            entity.HasKey(e => e.GuildId);
+            entity.Property(e => e.GuildId).HasColumnType("decimal(20,0)").ValueGeneratedNever();
+            entity.Property(e => e.ChannelId).HasColumnType("decimal(20,0)");
+            entity.Property(e => e.ModLogChannelId).HasColumnType("decimal(20,0)");
+            entity.Property(e => e.WarningMessageId).HasColumnType("decimal(20,0)");
+            entity.Property(e => e.CounterMessageId).HasColumnType("decimal(20,0)");
+            entity.Property(e => e.ConfiguredByUserId).HasColumnType("decimal(20,0)");
+        });
+
+        modelBuilder.Entity<HoneypotHit>(entity =>
+        {
+            entity.ToTable("HoneypotHits");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.GuildId).HasColumnType("decimal(20,0)");
+            entity.Property(e => e.UserId).HasColumnType("decimal(20,0)");
+            entity.Property(e => e.Username).HasMaxLength(256).IsRequired();
+            entity.Property(e => e.MessageContent).HasMaxLength(2000);
+        });
     }
 }

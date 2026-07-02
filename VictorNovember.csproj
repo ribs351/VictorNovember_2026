@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>e13c5969-ca74-4a6c-8b21-e4c1e50f2da9</UserSecretsId>
+    <StartupObject>VictorNovember.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -44,7 +45,7 @@
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.5.1" />
     <PackageReference Include="DSharpPlus.Interactivity" Version="4.5.1" />
     <PackageReference Include="DSharpPlus.SlashCommands" Version="4.5.1" />
-    <PackageReference Include="Google_GenerativeAI" Version="3.6.3" />
+    <PackageReference Include="Google_GenerativeAI" Version="3.6.6" />
     <PackageReference Include="Hangfire" Version="1.8.23" />
     <PackageReference Include="Hangfire.Core" Version="1.8.23" />
     <PackageReference Include="Hangfire.NetCore" Version="1.8.23" />
