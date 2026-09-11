@@ -1,6 +1,6 @@
 ﻿# Privacy Policy for November
 
-**Last Updated:** 13/02/2026
+**Last Updated:** 11/09/2026
 
 ## 1. Overview
 
@@ -28,6 +28,9 @@ November does not collect or store:
 - User profiles
 - Behavioral analytics
 - Personal identifying information beyond Discord IDs
+
+### 2.3 Honeypot Feature
+When a server administrator enables the honeypot feature, the bot stores the content of messages posted in the configured honeypot channel, along with the author's Discord User ID and username, for the purpose of moderation logging. This data is visible only to server administrators through the configured mod-log channel. Server administrators can disable the feature or request deletion at any time.
 
 ---
 
@@ -76,4 +79,4 @@ Only essential identifiers are stored, and no message content is persisted.
 
 ## 7. Contact
 
-For data deletion requests or privacy inquiries, contact: ribs351@gmail.com
+For data deletion requests or privacy inquiries, contact ribs351 on Discord.

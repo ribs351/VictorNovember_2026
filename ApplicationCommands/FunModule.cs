@@ -118,8 +118,9 @@ public sealed class FunModule : ApplicationCommandModule
         
         if (ctx.Channel.IsPrivate)
         {
-            // if channel is a DM, then say no
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("This command can only be used in a server, where the stakes are present."));
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder()
+                    .WithContent("This command can only be used in a server, where the stakes are present."));
             return;
         }
 
@@ -175,7 +176,7 @@ public sealed class FunModule : ApplicationCommandModule
         catch
         {
             await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent($"The chamber was loaded! **{ctx.User.Mention}** should have been dead... but they dodged the bullet because don't have permission 😭"));
+                .WithContent($"The chamber was loaded! **{ctx.User.Mention}** should have been dead... but they dodged the bullet because I didn't have permission 😭"));
             return;
         }
 

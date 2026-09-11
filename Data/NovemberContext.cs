@@ -3,7 +3,7 @@ using VictorNovember.Data.Entities;
 
 namespace VictorNovember.Data;
 
-public class NovemberContext : DbContext
+public sealed class NovemberContext : DbContext
 {
     public NovemberContext(DbContextOptions<NovemberContext> options)
         : base(options)
