@@ -14,47 +14,49 @@ public static class StringUtils
             return $"{t.Minutes}m {t.Seconds}s";
         return $"{t.Seconds}s";
     }
-    public static List<string> ProcessLLMOutput(string text)
+    public static List<string> ProcessLLMOutput(string input)
     {
         const int limit = 1900;
         const int maxChars = 6000;
 
-        if (string.IsNullOrWhiteSpace(text))
+        var finalAnswer = /*ExtractFinalAnswer(input);*/ input;
+
+        if (string.IsNullOrWhiteSpace(finalAnswer))
             return new List<string> { "(empty response)" };
 
-        if (text.Length > maxChars)
-            text = text.Substring(0, maxChars) + "\n\n(…cut off)";
+        if (finalAnswer.Length > maxChars)
+            finalAnswer = finalAnswer.Substring(0, maxChars) + "\n\n(…cut off)";
 
-        text = text.Replace("\r\n", "\n").Trim();
+        finalAnswer = finalAnswer.Replace("\r\n", "\n").Trim();
 
         // Prevent mass pings
-        text = text.Replace("@everyone", "@\u200Beveryone")
+        finalAnswer = finalAnswer.Replace("@everyone", "@\u200Beveryone")
                    .Replace("@here", "@\u200Bhere");
 
-        text = Regex.Replace(text, @"<@!?\d+>", m => m.Value.Insert(1, "\u200B"));
-        text = Regex.Replace(text, @"<@&\d+>", m => m.Value.Insert(1, "\u200B"));
-        text = Regex.Replace(text, @"<#\d+>", m => m.Value.Insert(1, "\u200B"));
+        finalAnswer = Regex.Replace(finalAnswer, @"<@!?\d+>", m => m.Value.Insert(1, "\u200B"));
+        finalAnswer = Regex.Replace(finalAnswer, @"<@&\d+>", m => m.Value.Insert(1, "\u200B"));
+        finalAnswer = Regex.Replace(finalAnswer, @"<#\d+>", m => m.Value.Insert(1, "\u200B"));
 
         var chunks = new List<string>();
 
-        while (!string.IsNullOrEmpty(text))
+        while (!string.IsNullOrEmpty(finalAnswer))
         {
-            if (text.Length <= limit)
+            if (finalAnswer.Length <= limit)
             {
-                chunks.Add(text);
+                chunks.Add(finalAnswer);
                 break;
             }
 
-            int splitIndex = FindBestSplitIndex(text, limit);
+            int splitIndex = FindBestSplitIndex(finalAnswer, limit);
 
-            var chunk = text.Substring(0, splitIndex).TrimEnd();
-            text = text.Substring(splitIndex).TrimStart();
+            var chunk = finalAnswer.Substring(0, splitIndex).TrimEnd();
+            finalAnswer = finalAnswer.Substring(splitIndex).TrimStart();
 
             // Handle unclosed code blocks
             if (HasUnclosedCodeBlock(chunk))
             {
                 chunk += "\n```";
-                text = "```\n" + text;
+                finalAnswer = "```\n" + finalAnswer;
             }
 
             chunks.Add(chunk);
@@ -90,4 +92,18 @@ public static class StringUtils
         return count % 2 != 0;
     }
 
+    private static string ExtractFinalAnswer(string responseText)
+    {
+        if (string.IsNullOrWhiteSpace(responseText))
+            return string.Empty;
+
+        // Use Singleline so '.' matches newlines inside the <final> block
+        var match = Regex.Match(responseText, @"<final>(.*?)</final>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+        if (match.Success)
+        {
+            return match.Groups[1].Value.Trim();
+        }
+        return responseText.Trim();
+    }
 }

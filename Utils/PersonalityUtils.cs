@@ -1,4 +1,4 @@
-﻿using GenerativeAI.Exceptions;
+﻿using VictorNovember.Exceptions;
 using System.Text.RegularExpressions;
 using System.Threading;
 

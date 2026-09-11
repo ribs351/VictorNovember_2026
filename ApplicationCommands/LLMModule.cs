@@ -1,10 +1,10 @@
 ﻿using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
-using GenerativeAI.Exceptions;
 using Microsoft.Extensions.Logging;
 using VictorNovember.Interfaces;
 using VictorNovember.Utils;
+using VictorNovember.Exceptions;
 using static VictorNovember.Enums.GeminiServiceEnums;
 
 namespace VictorNovember.ApplicationCommands;
@@ -49,7 +49,7 @@ public sealed class LLMModule : ApplicationCommandModule
 
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
             var generationTask = _gemini.GenerateTextAsync(query, promptMode, cts.Token);
 
             _ = Task.Run(async () =>

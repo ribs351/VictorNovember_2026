@@ -30,7 +30,10 @@ public sealed class Program
                         context.Configuration.GetConnectionString("NovemberDb"));
                 });
                 services.AddMemoryCache();
-                services.AddTransient<IGeminiService, GeminiService>();
+                services.AddHttpClient<IGeminiService, GeminiService>(client =>
+                {
+                    client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
+                });
                 services.AddScoped<ServerTrackingService>();
                 services.AddHostedService<DiscordBotService>();
                 services.AddHttpClient("welcome-images", client =>
