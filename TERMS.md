@@ -1,6 +1,6 @@
 ﻿# Terms of Service for November
 
-**Last Updated:** 13/02/2026
+**Last Updated:** 13/09/2026
 
 ## 1. Acceptance of Terms
 
@@ -25,13 +25,14 @@ November is not intended to provide:
 
 ## 3. AI-Generated Content
 
-Some responses are generated using AI models provided by Google.
+Some responses are generated using AI language models. These may be provided by a third-party service or run on infrastructure operated by the developer, and the specific provider may change over time without notice.
 
 AI-generated content:
 
 - May be inaccurate or incomplete
 - May contain errors
 - Should not be relied upon as factual or professional advice
+- Is not guaranteed to be appropriate for all audiences, and may occasionally reflect the limitations of the underlying AI model rather than the intent of the developer
 
 NASA module responses are based on publicly available data and are transformed for stylistic commentary purposes.
 
@@ -41,8 +42,9 @@ NASA module responses are based on publicly available data and are transformed f
 
 Users agree not to:
 
-- Use November in violation of Discord’s Terms of Service
-- Attempt to exploit, abuse, or overload the bot’s functionality
+- Use November in violation of Discord's Terms of Service
+- Attempt to exploit, abuse, or overload the bot's functionality
+- Attempt to use November to generate illegal, harmful, abusive, or otherwise policy-violating content, including through prompt injection or other attempts to bypass the bot's intended behavior
 - Use the bot for unlawful purposes
 
 ---
@@ -55,14 +57,14 @@ The developer does not guarantee uninterrupted service and is not liable for:
 
 - Downtime
 - API outages
-- Inaccurate AI-generated responses
+- Inaccurate or inappropriate AI-generated responses
 - Loss of data due to technical failures
 
 ---
 
 ## 6. Termination
 
-Access to November may be restricted or revoked at any time for violation of these Terms or Discord policies.
+Access to November may be restricted or revoked at any time for violation of these Terms or Discord policies. This includes, without limitation, repeated or deliberate attempts to misuse the bot's AI features as described in Section 4.
 
 ---
 
