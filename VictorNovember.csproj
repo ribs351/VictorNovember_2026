@@ -70,4 +70,10 @@
 	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.12" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="guildwhitelist.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

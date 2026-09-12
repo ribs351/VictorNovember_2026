@@ -116,7 +116,7 @@ public sealed class DiscordBotService : IHostedService
     {
         try
         {
-            await WhitelistHelper.EnforceGuildWhitelistAsync(s, _config);
+            await WhitelistHelper.EnforceGuildWhitelistAsync(s, _config); // remove this if you don't have a whitelist
 
             using var scope = _services.CreateScope();
             var tracking = scope.ServiceProvider

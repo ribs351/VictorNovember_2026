@@ -2,9 +2,9 @@
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using VictorNovember.Infrastructure;
 using VictorNovember.Services.BraveSearch.Models;
 
+namespace VictorNovember.Infrastructure;
 public sealed class BraveSearchClient : IBraveSearchClient
 {
     private readonly HttpClient _httpClient;

@@ -22,6 +22,11 @@ public sealed class Program
     {
         // TODO: move modules into separate assemblies
         var host = Host.CreateDefaultBuilder(args)
+            // remove these if you don't have a guild whitelist, be sure to check the DiscordBotService.cs and WhiteListHelper.cs
+            .ConfigureAppConfiguration((context, config) =>
+            {
+                config.AddJsonFile("guildwhitelist.json", optional: true, reloadOnChange: true);
+            })
             .ConfigureServices((context, services) =>
             {
                 services.AddDbContextFactory<NovemberContext>(options =>

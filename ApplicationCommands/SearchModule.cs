@@ -35,16 +35,9 @@ public sealed class SearchModule : ApplicationCommandModule
                 return;
             }
 
-            await ctx.DeleteResponseAsync();
+            var pages = result.ToSearchPages(query, 5).ToList();
 
-            await ctx.Client
-                .GetInteractivity()
-                .SendPaginatedMessageAsync(
-                    ctx.Channel,
-                    ctx.User,
-                    result.ToSearchPages(query, 5),
-                    PaginationBehaviour.Ignore,
-                    ButtonPaginationBehavior.Disable);
+            await ctx.SendPaginatedMessageWithJumpAsync(pages, ctx.User);
         }
         catch
         {
