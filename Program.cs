@@ -35,10 +35,26 @@ public sealed class Program
                         context.Configuration.GetConnectionString("NovemberDb"));
                 });
                 services.AddMemoryCache();
-                services.AddHttpClient<IGeminiService, GeminiService>(client =>
+                // "Llm:UseOllama": true routes to a locally-hosted Ollama server;
+                var useOllama = context.Configuration.GetValue<bool>("Llm:UseOllama");
+
+                if (useOllama)
                 {
-                    client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
-                });
+                    services.AddHttpClient<ILlmService, OllamaLLMService>(client =>
+                    {
+                        var baseUrl = context.Configuration["Ollama:BaseUrl"] ?? "http://localhost:11434/";
+                        client.BaseAddress = new Uri(baseUrl);
+                        client.Timeout = TimeSpan.FromMinutes(5);
+                    });
+                }
+                else
+                {
+                    services.AddHttpClient<ILlmService, GoogleLLMService>(client =>
+                    {
+                        client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
+                        client.Timeout = TimeSpan.FromSeconds(100);
+                    });
+                }
                 services.AddScoped<ServerTrackingService>();
                 services.AddHostedService<DiscordBotService>();
                 services.AddHttpClient("welcome-images", client =>

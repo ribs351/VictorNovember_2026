@@ -9,10 +9,10 @@ namespace VictorNovember.Services.NASA;
 public sealed class EpicService : IEpicService
 {
     private readonly IEpicClient _epicClient;
-    private readonly IGeminiService _geminiService;
+    private readonly ILlmService _geminiService;
     public EpicService(
         IEpicClient epicClient, 
-        IGeminiService geminiService)
+        ILlmService geminiService)
     {
         _epicClient = epicClient;
         _geminiService = geminiService;

@@ -7,19 +7,19 @@ using static VictorNovember.Enums.GeminiServiceEnums;
 
 namespace VictorNovember.Services;
 
-public sealed class GeminiService : IGeminiService
+public sealed class GoogleLLMService : ILlmService
 {
     private const string PrimaryModel = "gemma-4-26b-a4b-it";
     private const string FallbackModel = "gemma-4-31b-it";
 
     private readonly GeminiRestClient _client;
-    private readonly ILogger<GeminiService> _logger;
+    private readonly ILogger<GoogleLLMService> _logger;
     private readonly IPromptProviderService _promptProviderService;
 
-    public GeminiService(
+    public GoogleLLMService(
         HttpClient httpClient,
         IConfiguration config,
-        ILogger<GeminiService> logger,
+        ILogger<GoogleLLMService> logger,
         IPromptProviderService promptProviderService)
     {
         _logger = logger;

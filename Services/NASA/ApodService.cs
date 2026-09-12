@@ -9,10 +9,10 @@ namespace VictorNovember.Services.NASA;
 public sealed class ApodService : IApodService
 {
     private readonly INasaClient _nasaClient;
-    private readonly IGeminiService _geminiService;
+    private readonly ILlmService _geminiService;
     private readonly IMemoryCache _cache;
 
-    public ApodService(INasaClient nasaClient, IGeminiService geminiService, IMemoryCache cache)
+    public ApodService(INasaClient nasaClient, ILlmService geminiService, IMemoryCache cache)
     {
         _nasaClient = nasaClient;
         _geminiService = geminiService;

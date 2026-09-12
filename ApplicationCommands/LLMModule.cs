@@ -11,10 +11,10 @@ namespace VictorNovember.ApplicationCommands;
 
 public sealed class LLMModule : ApplicationCommandModule
 {
-    private readonly IGeminiService _gemini;
+    private readonly ILlmService _gemini;
     private readonly ILogger<LLMModule> _logger;
 
-    public LLMModule(IGeminiService gemini, ILogger<LLMModule> logger)
+    public LLMModule(ILlmService gemini, ILogger<LLMModule> logger)
     {
         _gemini = gemini;
         _logger = logger;
