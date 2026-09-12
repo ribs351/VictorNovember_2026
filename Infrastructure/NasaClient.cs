@@ -32,4 +32,21 @@ public class NasaClient : INasaClient
 
         return apod ?? throw new InvalidOperationException("NASA returned null.");
     }
+
+    public async Task<NeoFeedResponse> GetNeoFeedAsync(DateTime? date = null, CancellationToken ct = default)
+    {
+        // start_date/end_date are the same day
+        var targetDate = (date ?? DateTime.UtcNow).ToString("yyyy-MM-dd");
+        var endpoint = $"neo/rest/v1/feed?start_date={targetDate}&end_date={targetDate}&api_key={_options.ApiKey}";
+
+        var response = await _httpClient.GetAsync(endpoint, ct);
+
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException(
+                $"NASA NeoWs request failed: {(int)response.StatusCode} {response.ReasonPhrase}");
+
+        var feed = await response.Content.ReadFromJsonAsync<NeoFeedResponse>(cancellationToken: ct);
+
+        return feed ?? throw new InvalidOperationException("NASA returned null.");
+    }
 }

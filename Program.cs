@@ -80,6 +80,7 @@ public sealed class Program
                 services.AddTransient<ISearchUsageTracker, DatabaseSearchUsageTracker>();
                 services.AddTransient<ISearchService, SearchService>();
                 services.AddTransient<IHoneypotService, HoneypotService>();
+                services.AddTransient<INeoService, NeoService>();
             })
             .Build();
 

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using VictorNovember.Infrastructure.Models;
+using VictorNovember.Infrastructure;
 using VictorNovember.Interfaces;
 using static VictorNovember.Enums.GeminiServiceEnums;
 

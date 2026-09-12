@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace VictorNovember.Infrastructure.Models;
+namespace VictorNovember.Infrastructure;
 
 public sealed class GenerateContentRequest
 {
