@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using VictorNovember.Infrastructure.Models;
 using VictorNovember.Interfaces;
-using static VictorNovember.Enums.GeminiServiceEnums;
+using static VictorNovember.Enums.LLMServiceEnums;
 
 namespace VictorNovember.Services;
 

@@ -19,6 +19,7 @@ namespace VictorNovember.Services;
 
 public sealed class DiscordBotService : IHostedService
 {
+    private readonly ITtsService _tts;
     private readonly IServiceProvider _services;
     private readonly IConfiguration _config;
     private readonly ILogger<DiscordBotService> _logger;
@@ -28,12 +29,14 @@ public sealed class DiscordBotService : IHostedService
     private DiscordClient? _client;
 
     public DiscordBotService(
+        ITtsService tts,
         IServiceProvider services,
         IConfiguration config,
         ILogger<DiscordBotService> logger,
         DiscordClientProvider clientProvider,
         IMemorialService memorialService)
     {
+        _tts = tts;
         _services = services;
         _config = config;
         _logger = logger;

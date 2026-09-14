@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using VictorNovember.Infrastructure;
 using VictorNovember.Interfaces;
-using static VictorNovember.Enums.GeminiServiceEnums;
+using static VictorNovember.Enums.LLMServiceEnums;
 
 namespace VictorNovember.Services;
 

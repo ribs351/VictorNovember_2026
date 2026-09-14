@@ -1,6 +1,6 @@
 ﻿namespace VictorNovember.Enums;
 
-public sealed class GeminiServiceEnums
+public sealed class LLMServiceEnums
 {
     public enum PromptMode 
     { 
@@ -8,5 +8,6 @@ public sealed class GeminiServiceEnums
         InformativeReaction,
         Technical,
         Detailed,
+        Spoken
     }
 }

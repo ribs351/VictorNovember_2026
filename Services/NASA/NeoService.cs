@@ -2,7 +2,7 @@
 using System.Globalization;
 using VictorNovember.Interfaces;
 using VictorNovember.Services.NASA.Models;
-using static VictorNovember.Enums.GeminiServiceEnums;
+using static VictorNovember.Enums.LLMServiceEnums;
 
 namespace VictorNovember.Services.NASA;
 

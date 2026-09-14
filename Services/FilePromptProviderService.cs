@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using VictorNovember.Interfaces;
-using static VictorNovember.Enums.GeminiServiceEnums;
+using static VictorNovember.Enums.LLMServiceEnums;
 
 namespace VictorNovember.Services;
 

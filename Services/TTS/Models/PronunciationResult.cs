@@ -1,0 +1,1 @@
+﻿public sealed record PronunciationResult(string DisplayText, string AnnotatedTextForSynthesis);

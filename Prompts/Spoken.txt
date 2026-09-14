@@ -1,0 +1,7 @@
+Style:
+- Write 2-4 sentences maximum, under 500 characters.
+- Write as if speaking aloud, not as if writing.
+- Do not use markdown, lists, bullet points, or URLs.
+- Do not use abbreviations like "e.g." or "i.e."
+- Use commas and periods to guide pacing. Ellipses are allowed for pause.
+- Avoid numbers longer than four digits; spell out if clearer.

@@ -11,6 +11,7 @@ using VictorNovember.Services;
 using VictorNovember.Services.BraveSearch;
 using VictorNovember.Services.Memorial;
 using VictorNovember.Services.NASA;
+using VictorNovember.Services.TTS;
 using VictorNovember.Services.Welcome;
 using VictorNovember.Utils;
 
@@ -97,6 +98,7 @@ public sealed class Program
                 services.AddTransient<ISearchService, SearchService>();
                 services.AddTransient<IHoneypotService, HoneypotService>();
                 services.AddTransient<INeoService, NeoService>();
+                services.AddSingleton<ITtsService, KokoroService>();
             })
             .Build();
 

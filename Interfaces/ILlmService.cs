@@ -1,4 +1,4 @@
-﻿using static VictorNovember.Enums.GeminiServiceEnums;
+﻿using static VictorNovember.Enums.LLMServiceEnums;
 
 namespace VictorNovember.Interfaces;
 
