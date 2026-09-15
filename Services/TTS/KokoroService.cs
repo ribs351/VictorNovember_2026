@@ -3,9 +3,11 @@ using KokoroSharp.Core;
 using KokoroSharp.Processing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using VictorNovember.Infrastructure.Models;
 using VictorNovember.Interfaces;
+using VictorNovember.Utils;
 
 namespace VictorNovember.Services.TTS;
 
@@ -13,42 +15,77 @@ public sealed class KokoroService : ITtsService
 {
     private readonly ILogger<KokoroService> _logger;
     private readonly KokoroWavSynthesizer _synth;
-    private readonly KokoroVoice _mixedVoice;
+    private readonly Dictionary<string, KokoroVoice> _voiceMixes = new();
+    private readonly KokoroPipelineOptions _pipelineOptions;
 
-    public KokoroService(ILogger<KokoroService> logger, IConfiguration config)
+    public KokoroService(ILogger<KokoroService> logger, IConfiguration config, IOptions<KokoroMultiLanguageOptions> voiceOptions, IOptions<KokoroPipelineOptions> pipelineOptions)
     {
         _logger = logger;
-        var voices = config.GetSection("KokoroOptions").Get<List<KokoroOptions>>() ?? throw new InvalidOperationException("KokoroOptions configuration is missing.");
+        _pipelineOptions = pipelineOptions.Value;
+        
         _logger.LogInformation("Loading Kokoro model...");
         _synth = KokoroWavSynthesizer.LoadModel();
-        var mix = new List<(KokoroVoice voice, float weight)>();
-        foreach (var item in voices)
-        {
-            var voice = GetVoice(item.VoiceName);
-            if (voice != null) mix.Add((voice, item.Weight));
-        }
-        _mixedVoice = KokoroVoiceManager.Mix(mix.ToArray());
+        _voiceMixes["English"] = MixVoices(voiceOptions.Value.English);
+        _voiceMixes["Japanese"] = MixVoices(voiceOptions.Value.Japanese);
 
         _logger.LogInformation("Kokoro model loaded and voice mixed.");
     }
+    private KokoroVoice MixVoices(List<KokoroVoiceConfig> configs)
+    {
+        if (configs is null || configs.Count == 0)
+            throw new InvalidOperationException("Voice mix configuration is empty or missing.");
+
+        var mix = new List<(KokoroVoice voice, float weight)>();
+        foreach (var config in configs)
+        {
+            var voice = KokoroVoiceManager.GetVoice(config.VoiceName);
+            if (voice != null)
+                mix.Add((voice, config.Weight));
+            else
+                _logger.LogWarning("Voice '{VoiceName}' not found in KokoroVoiceManager, skipping.", config.VoiceName);
+        }
+
+        if (mix.Count == 0)
+            throw new InvalidOperationException("No valid voices resolved for this language's mix.");
+
+        return KokoroVoiceManager.Mix(mix.ToArray());
+    }
+
     public async Task<byte[]> SynthesizeAsync(string text, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
+
+        var language = LanguageDetector.Detect(text);
+
+        if (!_voiceMixes.TryGetValue(language, out var voiceMix))
+        {
+            _logger.LogWarning("Language {Language} not found, defaulting to English.", language);
+            voiceMix = _voiceMixes["English"];
+            language = "English";
+        }
+
+        var ttsText = language switch
+        {
+            "Japanese" => SpeechTextNormalizer.ToRomaji(text),
+            _ => text
+        };
+
         _logger.LogInformation("Synthesizing...");
         var pipelineConfig = new KokoroTTSPipelineConfig
         {
-            Speed = 0.9f,
+            Speed = _pipelineOptions.Speed,
             SecondsOfPauseBetweenProperSegments = new PauseAfterSegmentStrategy(
-                CommaPause: 0.1f,
-                PeriodPause: 0.5f,
-                QuestionMarkPause: 0.7f,
-                ExclamationMarkPause: 0.5f,
-                NewLinePause: 0.6f,
-                OthersPause: 0.5f
+                CommaPause: _pipelineOptions.CommaPause,
+                PeriodPause: _pipelineOptions.PeriodPause,
+                QuestionMarkPause: _pipelineOptions.QuestionMarkPause,
+                ExclamationMarkPause: _pipelineOptions.ExclamationMarkPause,
+                NewLinePause: _pipelineOptions.NewLinePause,
+                OthersPause: _pipelineOptions.OthersPause
             )
         };
 
-        var audioBytes = await _synth.SynthesizeAsync(text, _mixedVoice, pipelineConfig);
+
+        var audioBytes = await _synth.SynthesizeAsync(ttsText, voiceMix, pipelineConfig);
         stopwatch.Stop();
         _logger.LogInformation("Synthesis completed in {Elapsed}ms", stopwatch.ElapsedMilliseconds);
         var tempFile = Path.GetTempFileName();

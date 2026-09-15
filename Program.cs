@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using VictorNovember.Data;
 using VictorNovember.Infrastructure;
+using VictorNovember.Infrastructure.Models;
 using VictorNovember.Interfaces;
 using VictorNovember.Services;
 using VictorNovember.Services.BraveSearch;
@@ -62,6 +63,8 @@ public sealed class Program
                 {
                     client.Timeout = TimeSpan.FromSeconds(5);
                 });
+                services.Configure<KokoroPipelineOptions>(context.Configuration.GetSection("KokoroPipeline"));
+                services.Configure<KokoroMultiLanguageOptions>(context.Configuration.GetSection("KokoroVoices"));
                 services.Configure<NasaOptions>(context.Configuration.GetSection("Nasa"));
                 services.AddHttpClient<INasaClient, NasaClient>(client =>
                 {

@@ -1,10 +1,11 @@
-﻿using DSharpPlus.Entities;
+﻿using DSharpPlus;
+using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
+using VictorNovember.Exceptions;
 using VictorNovember.Interfaces;
 using VictorNovember.Utils;
-using VictorNovember.Exceptions;
 using static VictorNovember.Enums.LLMServiceEnums;
 
 namespace VictorNovember.ApplicationCommands;
@@ -15,9 +16,9 @@ public sealed class LLMModule : ApplicationCommandModule
     private readonly ILogger<LLMModule> _logger;
     private readonly ITtsService _tts;
 
-    public LLMModule(ILlmService lmm, ILogger<LLMModule> logger, ITtsService tts)
+    public LLMModule(ILlmService llm, ILogger<LLMModule> logger, ITtsService tts)
     {
-        _llm = lmm;
+        _llm = llm;
         _logger = logger;
         _tts = tts;
     }
@@ -40,8 +41,9 @@ public sealed class LLMModule : ApplicationCommandModule
 
         if (string.IsNullOrWhiteSpace(query))
         {
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent("Query nonexistent."));
+            await ctx.EditResponseAsync(
+                new DiscordWebhookBuilder()
+                    .WithContent("Query nonexistent."));
             return;
         }
 
@@ -52,56 +54,12 @@ public sealed class LLMModule : ApplicationCommandModule
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
-            var generationTask = _llm.GenerateTextAsync(query, promptMode, cts.Token);
-
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(10), cts.Token);
-
-                    if (!generationTask.IsCompleted)
-                    {
-                        await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                            .WithContent(PersonalityUtils.Thinking()));
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    // generation finished or request cancelled
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex.Message);
-                }
-            });
-
-            var response = await generationTask;
-
-            if (string.IsNullOrWhiteSpace(response))
-                response = PersonalityUtils.EmptyResponse();
-
-            var chunks = StringUtils.ProcessLLMOutput(response);
-
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent(chunks[0]));
-
-            for (int i = 1; i < chunks.Count; i++)
-            {
-                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
-                    .WithContent(chunks[i]));
-            }
+            var response = await GenerateWithThinkingAsync(ctx, query, promptMode, cts.Token);
+            await SendResponseAsync(ctx, response);
         }
-        
         catch (Exception ex)
         {
-            if (ex is not ApiException)
-                Console.WriteLine(ex);
-
-            var msg = PersonalityUtils.FromException(ex, includeCode: true);
-
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent(msg));
+            await HandleLlmExceptionAsync(ctx, ex);
         }
     }
 
@@ -117,74 +75,162 @@ public sealed class LLMModule : ApplicationCommandModule
 
         if (string.IsNullOrWhiteSpace(query))
         {
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent("Query nonexistent."));
+            await ctx.EditResponseAsync(
+                new DiscordWebhookBuilder()
+                    .WithContent("Query nonexistent."));
             return;
         }
 
-        var promptMode = PromptMode.Spoken;
-
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
-            var generationTask = _llm.GenerateTextAsync(query, promptMode, cts.Token);
+            using var cts = new CancellationTokenSource(
+                TimeSpan.FromSeconds(120));
 
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(10), cts.Token);
-
-                    if (!generationTask.IsCompleted)
-                    {
-                        await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                            .WithContent(PersonalityUtils.Thinking()));
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    // generation finished or request cancelled
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex.Message);
-                }
-            });
-
-            var response = await generationTask;
-
-            if (string.IsNullOrWhiteSpace(response))
-                response = PersonalityUtils.EmptyResponse();
-
-            var now = DateTime.UtcNow;
+            var response = await GenerateWithThinkingAsync(ctx, query, PromptMode.Spoken, cts.Token);
 
             var chunks = StringUtils.ProcessLLMOutput(response);
             var audioText = string.Join(" ", chunks);
-            var audioBytes = await _tts.SynthesizeAsync(audioText, cts.Token);
+            using var ttsCts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+            var audioBytes = await _tts.SynthesizeAsync(audioText, ttsCts.Token);
+
+            var now = DateTime.UtcNow;
 
             using var fileStream = new MemoryStream(audioBytes);
 
+            await ctx.EditResponseAsync(
+                new DiscordWebhookBuilder()
+                    .WithContent(chunks[0])
+                    .AddFile(
+                        $"november_{now.Hour}_{now.Minute}_{now.Day}_{now.Month}_{now.Year}.wav",
+                        fileStream));
+
+            for (var i = 1; i < chunks.Count; i++)
+            {
+                await ctx.FollowUpAsync(
+                    new DiscordFollowupMessageBuilder()
+                        .WithContent(chunks[i]));
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleLlmExceptionAsync(ctx, ex);
+        }
+    }
+
+    [ContextMenu(ApplicationCommandType.MessageContextMenu, "Ask November")]
+    public async Task AskAboutMessageAsync(ContextMenuContext ctx)
+    {
+        await ctx.DeferAsync();
+
+        var targetMessage = ctx.TargetMessage;
+        if (string.IsNullOrWhiteSpace(targetMessage.Content))
+        {
             await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent(chunks[0])
-                .AddFile($"november_{now.Hour}_{now.Minute}_{now.Day}_{now.Month}_{now.Year}.wav", fileStream));
+                .WithContent("There's nothing to read in that message."));
+            return;
+        }
+        var content = targetMessage.Content.Length > 2000 ? targetMessage.Content[..2000] : targetMessage.Content;
+        try 
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+            var prompt = $"[A user has asked you to react to the following message, written by {targetMessage.Author.Username}]\n\n{content}";
+            var response = await _llm.GenerateTextAsync(prompt, PromptMode.Summary, cts.Token);
+            var chunks = StringUtils.ProcessLLMOutput(response);
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(chunks[0]));
 
             for (int i = 1; i < chunks.Count; i++)
             {
-                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
-                    .WithContent(chunks[i]));
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().WithContent(chunks[i]));
             }
         }
 
         catch (Exception ex)
         {
-            if (ex is not ApiException)
-                Console.WriteLine(ex);
-
-            var msg = PersonalityUtils.FromException(ex, includeCode: true);
-
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent(msg));
+            var msg = PersonalityUtils.FromException(ex, includeCode: false);
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(msg));
         }
+    }
+
+    private async Task<string> GenerateWithThinkingAsync(
+    InteractionContext ctx,
+    string query,
+    PromptMode mode,
+    CancellationToken cancellationToken)
+    {
+        var generationTask = _llm.GenerateTextAsync(query, mode, cancellationToken);
+        var thinkingTask = ShowThinkingAfterDelayAsync(ctx, generationTask, cancellationToken);
+
+        var response = await generationTask;
+
+        _ = thinkingTask;
+
+        return string.IsNullOrWhiteSpace(response)
+            ? PersonalityUtils.EmptyResponse()
+            : response;
+    }
+
+    private async Task ShowThinkingAfterDelayAsync(
+        InteractionContext ctx,
+        Task generationTask,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+
+            if (!generationTask.IsCompleted)
+            {
+                await ctx.EditResponseAsync(
+                    new DiscordWebhookBuilder()
+                        .WithContent(PersonalityUtils.Thinking()));
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Normal: generation completed or timed out.
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to update LLM thinking message.");
+        }
+    }
+
+    private static async Task SendResponseAsync(
+    InteractionContext ctx,
+    string response)
+    {
+        var chunks = StringUtils.ProcessLLMOutput(response);
+
+        await ctx.EditResponseAsync(
+            new DiscordWebhookBuilder()
+                .WithContent(chunks[0]));
+
+        for (var i = 1; i < chunks.Count; i++)
+        {
+            await ctx.FollowUpAsync(
+                new DiscordFollowupMessageBuilder()
+                    .WithContent(chunks[i]));
+        }
+    }
+
+    private async Task HandleLlmExceptionAsync(
+    InteractionContext ctx,
+    Exception ex)
+    {
+        if (ex is not ApiException)
+        {
+            _logger.LogError(ex, "Unhandled exception in LLM command.");
+        }
+
+        var msg = PersonalityUtils.FromException(
+            ex,
+            includeCode: true);
+
+        await ctx.EditResponseAsync(
+            new DiscordWebhookBuilder()
+                .WithContent(msg));
     }
 
 }

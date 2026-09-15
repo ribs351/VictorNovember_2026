@@ -6,6 +6,7 @@ public sealed class LLMServiceEnums
     { 
         General,
         InformativeReaction,
+        Summary,
         Technical,
         Detailed,
         Spoken

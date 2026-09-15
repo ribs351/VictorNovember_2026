@@ -20,7 +20,9 @@ public sealed class FilePromptProviderService : IPromptProviderService
             { PromptMode.General, File.ReadAllText(Path.Combine(promptPath, "General.txt")) },
             { PromptMode.InformativeReaction, File.ReadAllText(Path.Combine(promptPath, "InformativeReaction.txt")) },
             { PromptMode.Technical, File.ReadAllText(Path.Combine(promptPath, "Technical.txt")) },
-            { PromptMode.Detailed, File.ReadAllText(Path.Combine(promptPath, "Detailed.txt")) }
+            { PromptMode.Detailed, File.ReadAllText(Path.Combine(promptPath, "Detailed.txt")) },
+            { PromptMode.Summary, File.ReadAllText(Path.Combine(promptPath, "Summary.txt")) },
+            { PromptMode.Spoken, File.ReadAllText(Path.Combine(promptPath, "Spoken.txt")) }
         };
     }
 
