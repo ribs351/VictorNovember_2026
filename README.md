@@ -6,6 +6,7 @@
 - .NET 8
 - SQL Server (or suffer through migrations to switch to SQLite)
 - Google Gemini API key (good luck with the free tier)
+- Ollama if you don't like cloud AI services
 
 ## Contributions
 This is a personal project and I’m not accepting pull requests at this time.

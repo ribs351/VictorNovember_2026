@@ -406,7 +406,7 @@ public sealed class ModerationModule : ApplicationCommandModule
         [Option("amount", "How many messages to delete (1-100).")] long amount
     )
     {
-        await ctx.DeferAsync();
+        await ctx.DeferAsync(ephemeral: true);
 
         if (ctx.Guild is null || ctx.Member is null)
         {

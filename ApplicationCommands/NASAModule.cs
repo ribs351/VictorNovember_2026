@@ -1,10 +1,8 @@
 ﻿using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using VictorNovember.Interfaces;
-using VictorNovember.Services.NASA;
 
 namespace VictorNovember.ApplicationCommands;
 
@@ -31,7 +29,7 @@ public sealed class NASAModule : ApplicationCommandModule
         var apod = await _apodService.GetApodDataAsync();
 
         var embed = new DiscordEmbedBuilder()
-            .WithTitle($"🌌 {apod.Title}")
+            .WithTitle($"{apod.Title}")
             .WithImageUrl(apod.ImageUrl)
             .WithColor(DiscordColor.Azure)
             .WithFooter($"NASA APOD • {apod.Date}")
@@ -101,7 +99,7 @@ public sealed class NASAModule : ApplicationCommandModule
         var hazardLabel = neo.IsPotentiallyHazardous ? "⚠️ Potentially Hazardous" : "Not Hazardous";
 
         var embed = new DiscordEmbedBuilder()
-            .WithTitle($"☄️ {neo.Name}")
+            .WithTitle($"{neo.Name}")
             .WithUrl(neo.NasaJplUrl)
             .WithColor(neo.IsPotentiallyHazardous ? DiscordColor.Red : DiscordColor.Azure)
             .AddField("Miss Distance", $"{neo.MissDistanceKm:N0} km ({neo.MissDistanceLunar:N1} LD)", inline: true)

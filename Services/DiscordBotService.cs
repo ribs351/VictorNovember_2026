@@ -65,6 +65,7 @@ public sealed class DiscordBotService : IHostedService
         _client.GuildCreated += OnGuildBootstrap;
         _client.GuildMemberAdded += OnNewGuildMemberAdded;
         _client.MessageCreated += OnMessageCreated;
+        _client.ComponentInteractionCreated += GeneralModule.OnCategorySelected;
 
         _client.UseInteractivity(new InteractivityConfiguration
         {
@@ -111,6 +112,7 @@ public sealed class DiscordBotService : IHostedService
             _client.GuildCreated -= OnGuildBootstrap;
             _client.GuildAvailable -= OnGuildBootstrap;
             _client.MessageCreated -= OnMessageCreated;
+            _client.ComponentInteractionCreated -= GeneralModule.OnCategorySelected;
             await _client.DisconnectAsync();
         }
     }

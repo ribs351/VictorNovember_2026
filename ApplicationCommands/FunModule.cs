@@ -60,7 +60,7 @@ public sealed class FunModule : ApplicationCommandModule
         "We are evenly matched."
     };
 
-    [SlashCommand("rps", "Play a Rock, Paper, Scissors with November")]
+    [SlashCommand("rps", "Play a game of Rock, Paper, Scissors with November")]
     public async Task RockPaperScissorsAsync(
         InteractionContext ctx, 
         [Choice("Rock", "rock")]
@@ -101,6 +101,7 @@ public sealed class FunModule : ApplicationCommandModule
             .WithContent($"You threw **{playerChoice.ToDisplayString()}**, I threw **{novemberChoice.ToDisplayString()}**.\n\n**{outcomeHeader}**\n{response}"));
     }
     #endregion
+
     [SlashCommand("rr", "Play a game of Russian Roulette")]
     [SlashCooldown(1, 10, SlashCooldownBucketType.Channel)]
     public async Task RussianRouletteAsync(

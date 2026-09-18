@@ -1,6 +1,4 @@
 ﻿using DSharpPlus.Entities;
-using DSharpPlus.Interactivity.Enums;
-using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
 using VictorNovember.Extensions;
 using VictorNovember.Interfaces;
