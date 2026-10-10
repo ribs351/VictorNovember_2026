@@ -63,12 +63,9 @@ public sealed class ApodService : IApodService
         }
     }
 
-    private static string ResolveImageUrl(ApodResponse apod)
+    private static string? ResolveImageUrl(ApodResponse apod)
     {
-        if (apod.MediaType == "image")
-            return apod.HdUrl ?? apod.Url;
-
-        return apod.ThumbnailUrl ?? apod.Url;
+        return apod.MediaType == "image" ? apod.HdUrl : null;
     }
 
     private static string TrimExplanation(string explanation)
