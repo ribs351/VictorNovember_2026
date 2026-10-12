@@ -37,26 +37,44 @@ public sealed class Program
                         context.Configuration.GetConnectionString("NovemberDb"));
                 });
                 services.AddMemoryCache();
-                // "Llm:UseOllama": true routes to a locally-hosted Ollama server;
-                var useOllama = context.Configuration.GetValue<bool>("Llm:UseOllama");
+                // "Llm:ProviderMode": Determines the LLM Provider;
+                var providerMode = context.Configuration.GetValue<LlmProvider>("Llm:ProviderMode");
 
-                if (useOllama)
+                switch (providerMode)
                 {
-                    services.AddHttpClient<ILlmService, OllamaLLMService>(client =>
+                    case LlmProvider.Ollama:
+                        {
+                            services.AddHttpClient<ILlmService, OllamaLLMService>(client =>
+                            {
+                                var baseUrl = context.Configuration["Ollama:BaseUrl"] ?? "http://localhost:11434/";
+                                client.BaseAddress = new Uri(baseUrl);
+                                client.Timeout = TimeSpan.FromMinutes(5);
+                            });
+                            break;
+                        }
+                    case LlmProvider.Strata:
+                        {
+                            services.AddHttpClient<ILlmService, StrataLLMService>(client =>
+                            {
+                                // make sure to have a trailing slash in the base url, else "v1/chat/completions" resolves wrongly
+                                var baseUrl = context.Configuration["Strata:BaseUrl"] ?? "http://localhost:8080/";
+                                client.BaseAddress = new Uri(baseUrl);
+                                client.Timeout = TimeSpan.FromMinutes(5);
+                            });
+                            break;
+                        }
+                    case LlmProvider.GoogleCloud:
                     {
-                        var baseUrl = context.Configuration["Ollama:BaseUrl"] ?? "http://localhost:11434/";
-                        client.BaseAddress = new Uri(baseUrl);
-                        client.Timeout = TimeSpan.FromMinutes(5);
-                    });
+                            services.AddHttpClient<ILlmService, GoogleLLMService>(client =>
+                            {
+                                client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
+                                client.Timeout = TimeSpan.FromSeconds(100);
+                            });
+                            break;
+                        }
+                    default: throw new InvalidOperationException($"Unknown LLM provider: {providerMode}");
                 }
-                else
-                {
-                    services.AddHttpClient<ILlmService, GoogleLLMService>(client =>
-                    {
-                        client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
-                        client.Timeout = TimeSpan.FromSeconds(100);
-                    });
-                }
+
                 services.AddScoped<ServerTrackingService>();
                 services.AddHostedService<DiscordBotService>();
                 services.AddHttpClient("welcome-images", client =>
